@@ -1,12 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import {  useSearchParams } from "next/navigation";
 import Image from "next/image";
 import DashboardModal from "./DashboardModal"; // Import the modal component
 
 const VerifyOTP = () => {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email") || "your email";
 

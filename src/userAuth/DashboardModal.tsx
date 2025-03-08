@@ -16,7 +16,7 @@ const DashboardModal: React.FC<DashboardModalProps> = ({ onClose }) => {
     { name: "Omnisupport", image: "/images/Tuma_Omnisupport.png", path: "https://tuma-omnisupport.vercel.app/" },
     { name: "FX Navigator", image: "/images/Tuma_Fx_Navigator.png", path: "https://tuma-black.vercel.app/" },
     { name: "Campaign Manager", image: "/images/Tuma_Campaign_Manager.png", path: "/campaign-manager" },
-    { name: "Back Office Suite", image: "/images/Tuma_Back_Office.png", path: "/backoffice" },
+    { name: "Back Office Suite", image: "/images/Tuma_Back_Office.png", path: "https://tuma-backoffice-wsis.vercel.app/" },
     { name: "Merchant Portal", image: "/images/Tuma_Merchant_Portal.png", path: "https://promitto-backoffice.vercel.app/" },
     { name: "Access Manager", image: "/images/Tuma_Access_Manager.png", path: "/access-manager" },
   ];

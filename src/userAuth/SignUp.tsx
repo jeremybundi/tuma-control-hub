@@ -56,7 +56,7 @@ export default function ControlHub() {
                 </label>
                 <input
                   type="text"
-                  className="mt-1 w-full px-4 py-3 border text-lg border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="mt-1 w-full px-4 py-2 border text-lg border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   required
                 />
               </div>
@@ -71,7 +71,7 @@ export default function ControlHub() {
                   </label>
                   <input
                     type={label === "Email" ? "email" : "tel"}
-                    className="mt-1 w-full px-4 py-3 border text-lg border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="mt-1 w-full px-4 py-2 border text-lg border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
                     required
                   />
                 </div>

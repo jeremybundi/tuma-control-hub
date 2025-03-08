@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+/* Apply global font */
+body {
+  font-family: "Poppins", "Manrope", "Lufga", sans-serif;
+}

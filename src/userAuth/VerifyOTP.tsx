@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import {  useSearchParams } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import DashboardModal from "./DashboardModal"; // Import the modal component
 
-const VerifyOTP = () => {
+const VerifyOTPContent = () => {
   const searchParams = useSearchParams();
   const email = searchParams.get("email") || "your email";
 
@@ -153,6 +153,15 @@ const VerifyOTP = () => {
       {/* Dashboard Modal */}
       {isModalOpen && <DashboardModal onClose={() => setIsModalOpen(false)} />}
     </div>
+  );
+};
+
+// Wrap in Suspense to avoid Next.js pre-rendering issues
+const VerifyOTP = () => {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <VerifyOTPContent />
+    </Suspense>
   );
 };
 

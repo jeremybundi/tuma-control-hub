@@ -14,7 +14,7 @@ export default function ControlHub() {
   };
 
   return (
-    <div className="flex min-h-screen font-poppins items-center justify-center bg-gray-100">
+    <div className="flex h-screen font-poppins items-center justify-center bg-gray-100">
       <div className="w-full max-w-full overflow-hidden flex">
         {/* Left Column: Image */}
         <div className="w-1/2 relative">
@@ -23,12 +23,12 @@ export default function ControlHub() {
             alt="Lady"
             width={500}
             height={500}
-            className="h-full w-full object-cover"
+            className="h-screen w-full object-cover"
           />
         </div>
 
         {/* Right Column: Form */}
-        <div className="w-1/2 mt-32 px-24 pr-36">
+        <div className="w-1/2 mt-24 px-24 pr-36">
           <h2 className="text-4xl font-bold text-gray-800 mb-12 flex items-center gap-4">
             <Image src="/images/logo.png" alt="Logo" width={40} height={35} />
             Control Hub

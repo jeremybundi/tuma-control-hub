@@ -76,7 +76,7 @@ const VerifyOTPContent = () => {
             alt="Lady"
             width={500}
             height={500}
-            className="h-full w-full object-cover"
+            className="h-screen w-full object-cover"
           />
         </div>
 

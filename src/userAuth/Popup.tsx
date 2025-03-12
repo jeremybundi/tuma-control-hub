@@ -10,7 +10,7 @@ const Popup: React.FC<PopupProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed font-poppins inset-0 backdrop-blur-xs  bg-opacity-10 flex justify-center items-center z-10">
+    <div className="fixed font-poppins inset-0 my-12 backdrop-blur-xs  bg-opacity-10 flex justify-center items-center z-10">
       <div className="bg-white rounded-2xl shadow-lg p-6 max-w-lg w-full relative text-center">
         {/* Close Button (Top Right) */}
         <button onClick={onClose} className="absolute top-4 right-4">

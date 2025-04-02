@@ -55,6 +55,7 @@ const VerifyOTPContent = () => {
     setError("");
     setTimeout(() => {
       setIsModalOpen(true); 
+      
     }, 1500);
   };
 

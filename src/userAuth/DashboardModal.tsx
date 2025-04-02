@@ -22,8 +22,8 @@ const DashboardModal: React.FC<DashboardModalProps> = ({ onClose }) => {
   ];
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-opacity-50 backdrop-blur-md z-50">
-      <div className="relative bg-white px-6 py-16 rounded-2xl shadow-lg w-[650px] h-[700px] text-center">
+    <div className="fixed inset-0 flex items-center justify-center bg-opacity-45 backdrop-blur-xl z-50">
+      <div className="relative bg-white px-6 py-16 rounded-2xl shadow-lg w-6xl h-[750px] text-center">
         {/* Close Button (Top Right) */}
         <button onClick={onClose} className="absolute top-5 right-5">
           <Image src="/images/close.png" alt="Close" width={30} height={30} />
@@ -32,19 +32,19 @@ const DashboardModal: React.FC<DashboardModalProps> = ({ onClose }) => {
         <h2 className="text-3xl font-semibold text-gray-800 mt-8 mb-12">Select a module to proceed</h2>
 
         {/* Grid layout for buttons */}
-        <div className="grid grid-cols-3  gap-3 gap-y-12">
+        <div className="grid grid-cols-3  gap-2 gap-y-16">
           {modules.map((module, index) => (
             <button 
               key={index}
               onClick={() => router.push(module.path)}
-              className="flex flex-col items-center justify-center transition py-2 rounded-lg hover:bg-gray-100"
+              className="flex flex-col items-center justify-center transition py-2 rounded-lg cursor-pointer hover:bg-gray-100"
             >
-              <div className="w-32 h-32 overflow-hidden rounded-full shadow-md">
+              <div className="w-48 h-48 overflow-hidden rounded-full shadow-md">
                 <Image 
                   src={module.image} 
                   alt={module.name} 
-                  width={150} 
-                  height={150} 
+                  width={250} 
+                  height={250} 
                   className="object-cover"
                 />
               </div>

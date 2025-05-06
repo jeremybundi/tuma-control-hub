@@ -4,22 +4,38 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import axios from "axios";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [notification, setNotification] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Simulating API call - replace with actual API request
-    setNotification("An OTP has been sent to your email. Please verify.");
+    setIsLoading(true);
+    setError("");
     
-    // Redirect to verify-otp page with email as query param
-    setTimeout(() => {
-      router.push(`/verify-otp?email=${encodeURIComponent(email)}`);
-    }, 1500);
+    try {
+      // Make API call to send OTP
+      const response = await axios.post(
+        `https://auth.tuma-app.com/api/auth/send-otp/${encodeURIComponent(email)}`
+      );
+  
+      if (response.status === 200) {
+        setNotification("An OTP has been sent to your email. Please verify.");
+        router.push(`/verify-otp?email=${encodeURIComponent(email)}`);
+      } else {
+        setError("Failed to send OTP. Please try again.");
+      }
+    } catch (err) {
+      setError("Failed to send OTP. Please try again.");
+      console.error("OTP sending error:", err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -32,6 +48,7 @@ const Login = () => {
             alt="Lady"
             width={500}
             height={500}
+            loading="lazy"
             className="h-screen w-full object-cover"
           />
         </div>
@@ -44,11 +61,18 @@ const Login = () => {
           </h2>
           <h1 className="text-2xl text-gray-800 font-semibold mb-8">Login to your account</h1>
           <p className="text-gray-400 font-medium text-lg mb-6">
-            Don’t have an account?{" "}
+            Don't have an account?{" "}
             <Link href="/" className="text-blue-600 underline">
               Request for Access
             </Link>
           </p>
+
+          {/* Error Message */}
+          {error && (
+            <div className="bg-red-100 text-red-800 px-4 py-2 rounded mb-4 text-center">
+              {error}
+            </div>
+          )}
 
           {/* Notification Message */}
           {notification && (
@@ -92,9 +116,12 @@ const Login = () => {
             {/* Login Button */}
             <button
               type="submit"
-              className="w-full mt-6 bg-gray-800 hover:bg-gray-900 text-white font-semibold text-xl py-3 rounded-lg transition duration-300"
+              disabled={isLoading}
+              className={`w-full mt-6 bg-gray-800 hover:bg-gray-900 text-white font-semibold text-xl py-3 rounded-lg transition duration-300 ${
+                isLoading ? "opacity-70 cursor-not-allowed" : ""
+              }`}
             >
-              Continue
+              {isLoading ? "Sending OTP..." : "Continue"}
             </button>
           </form>
         </div>

@@ -7,10 +7,11 @@ import Popup from "@/userAuth/Popup"; // Import the popup component
 
 export default function ControlHub() {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [department, setDepartment] = useState(""); // State for selected department
 
   const handleRequestAccess = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsPopupOpen(true); // Show popup on button click
+    setIsPopupOpen(true); 
   };
 
   return (
@@ -28,7 +29,7 @@ export default function ControlHub() {
         </div>
 
         {/* Right Column: Form */}
-        <div className="w-1/2 mt-24 px-24 pr-36">
+        <div className="w-1/2 mt-16 px-24 pr-36">
           <h2 className="text-4xl font-bold text-gray-800 mb-12 flex items-center gap-4">
             <Image src="/images/logo.png" alt="Logo" width={40} height={35} />
             Control Hub
@@ -76,6 +77,25 @@ export default function ControlHub() {
                   />
                 </div>
               ))}
+            </div>
+
+            {/* Department Dropdown */}
+            <div>
+              <label className="block text-xl font-medium text-gray-500">
+                Department <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={department}
+                onChange={(e) => setDepartment(e.target.value)}
+                className="mt-1 w-full px-4 py-2 border text-lg border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                required
+              >
+                <option value="">Select Department</option>
+                <option value="Tech">Tech</option>
+                <option value="Finance">Finance</option>
+                <option value="Customer Support">Customer Support</option>
+                <option value="Compliance">Compliance</option>
+              </select>
             </div>
 
             {/* Request for Access Button */}

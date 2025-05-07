@@ -17,7 +17,7 @@ interface AuthState {
 const initialState: AuthState = {
   accessToken: null,
   refreshToken: null,
-  tokenExpiry: null, // Add this line
+  tokenExpiry: null, 
   user: null
 };
 
@@ -28,7 +28,7 @@ export const authSlice = createSlice({
     setCredentials: (state, action: PayloadAction<{
       accessToken: string;
       refreshToken: string;
-      tokenExpiry?: number; // Make this optional if needed
+      tokenExpiry?: number; 
     }>) => {
       const { accessToken, refreshToken, tokenExpiry } = action.payload;
       const decoded = jwtDecode<{
@@ -42,7 +42,7 @@ export const authSlice = createSlice({
 
       state.accessToken = accessToken;
       state.refreshToken = refreshToken;
-      state.tokenExpiry = tokenExpiry ?? decoded.exp * 1000; // Use provided or calculate from JWT
+      state.tokenExpiry = tokenExpiry ?? decoded.exp * 1000;
       state.user = {
         email: decoded.email,
         firstName: decoded.firstName,

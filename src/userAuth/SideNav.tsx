@@ -39,13 +39,9 @@ export default function SideNav() {
     {
       href: "/access-manager/user-access",
       icon: <FaUsers className="mr-3" size={20} />,
-      label: "User Access",
+      label: "User Access & Roles",
     },
-    {
-      href: "/access-manager/user-roles",
-      icon: <FaUserShield className="mr-3" size={20} />, // Distinct icon
-      label: "User Roles ",
-    },
+ 
     {
       href: "/compliance",
       icon: <FaShieldAlt className="mr-3" size={20} />,

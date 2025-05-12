@@ -4,20 +4,30 @@ import Image from "next/image";
 interface PopupProps {
   isOpen: boolean;
   onClose: () => void;
+  response: {
+    status: string;
+    message: string;
+    account_key?: string;
+  };
 }
 
-const Popup: React.FC<PopupProps> = ({ isOpen, onClose }) => {
-  if (!isOpen) return null;
+const Popup: React.FC<PopupProps> = ({ isOpen, onClose, response }) => {
+  // Show only if open AND response is success
+  if (!isOpen || response.status !== "success") return null;
 
   return (
-    <div className="fixed font-poppins inset-0 my-12 backdrop-blur-xs  bg-opacity-10 flex justify-center items-center z-10">
+    <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex justify-center items-center z-50 font-poppins">
       <div className="bg-white rounded-2xl shadow-lg p-6 max-w-lg w-full relative text-center">
-        {/* Close Button (Top Right) */}
-        <button onClick={onClose} className="absolute top-4 right-4">
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          aria-label="Close popup"
+          className="absolute top-4 right-4"
+        >
           <Image src="/images/close.png" alt="Close" width={40} height={40} />
         </button>
 
-        {/* Tick Icon (Top Center) */}
+        {/* Tick Icon */}
         <div className="flex mt-8 justify-center">
           <Image src="/images/tick.png" alt="Success" width={60} height={60} />
         </div>
@@ -25,15 +35,20 @@ const Popup: React.FC<PopupProps> = ({ isOpen, onClose }) => {
         <h2 className="text-2xl font-bold mx-8 text-gray-600 mt-7">
           Request Submitted Successfully
         </h2>
-        <p className="text-gray-500 text-xl px-12 mt-5">
-          Thanks for submitting your access request. You will receive an email
-          with instructions once access is granted.
-        </p>
+
+        <p className="text-gray-500 text-xl px-6 mt-5">{response.message}</p>
+
+        {response.account_key && (
+          <p className="mt-4 text-gray-800 font-semibold">
+            Account Key: {response.account_key}
+          </p>
+        )}
+
         <button
           onClick={onClose}
-          className="mt-10 border mb-5 font-normal py-2  text-xl px-8 text-gray-700 rounded-lg transition hover:bg-gray-500 hover:text-white"
+          className="mt-10 border mb-5 font-normal py-2 text-xl px-8 text-gray-700 rounded-lg transition hover:bg-gray-500 hover:text-white"
         >
-          close
+          Close
         </button>
       </div>
     </div>

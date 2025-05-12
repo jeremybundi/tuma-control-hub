@@ -16,7 +16,7 @@ import DashboardModal from './DashboardModal';
 
 interface NavItem {
   href: string;
-  icon: JSX.Element;
+  icon: React.JSX.Element;
   label: string;
 }
 

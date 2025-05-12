@@ -11,7 +11,7 @@ import {jwtDecode} from "jwt-decode"; // Make sure to install this package
 
 interface DecodedToken {
   exp: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 const VerifyOTPContent = () => {
@@ -232,7 +232,7 @@ const VerifyOTPContent = () => {
             </form>
 
             <p className="mt-6 text-center text-gray-500 text-lg">
-              Didn't receive the code? 
+            Don&apos;t receive the code? 
               <button 
                 onClick={handleResendOTP} 
                 disabled={resendDisabled} 

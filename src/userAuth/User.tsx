@@ -24,7 +24,7 @@ export default function User() {
   
   const firstName = user?.firstName || '';
   const lastName = user?.lastName || '';
-  const email = user?.email || '';
+ // const email = user?.email || '';
   const userInitials = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
 
   const handleModalToggle = () => {

@@ -22,6 +22,19 @@ interface User {
   modifiedAt: number;
 }
 
+interface ApiUser {
+  id: number;
+  userKey?: string;
+  firstName?: string;
+  lastName?: string;
+  email: string;
+  phoneNumber?: string;
+  department?: string;
+  status?: boolean;
+  createdAt?: string;
+  modifiedAt?: string;
+}
+
 export default function UserTable() {
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
@@ -31,8 +44,7 @@ export default function UserTable() {
   const [error, setError] = useState<string | null>(null);
   const accessToken = useSelector((state: RootState) => state.auth.accessToken);
   const [message, setMessage] = useState<string | null>(null);
-const [messageType, setMessageType] = useState<"success" | "error" | null>(null);
-
+  const [messageType, setMessageType] = useState<"success" | "error" | null>(null);
 
   const getInitials = (firstName: string, lastName: string) =>
     `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
@@ -82,12 +94,9 @@ const [messageType, setMessageType] = useState<"success" | "error" | null>(null)
         }
   
         const data = await response.json();
-        
-        // Log the raw API response data
         console.log("API Response Data:", data);
   
-        // Transform the API data to match your User interface
-        const transformedUsers = data.map((user: any) => ({
+        const transformedUsers = data.map((user: ApiUser) => ({
           id: user.id,
           userKey: user.userKey || `user_${user.id}`,
           firstName: user.firstName || "Unknown",
@@ -95,12 +104,11 @@ const [messageType, setMessageType] = useState<"success" | "error" | null>(null)
           email: user.email,
           phoneNumber: user.phoneNumber || "N/A",
           department: user.department || "N/A",
-          status: user.status ? "active" : "pending", // Convert boolean to status string
-          createdAt: new Date(user.createdAt).getTime() || Date.now(),
-          modifiedAt: new Date(user.modifiedAt).getTime() || Date.now(),
+          status: user.status ? "active" : "pending",
+          createdAt: user.createdAt ? new Date(user.createdAt).getTime() : Date.now(),
+          modifiedAt: user.modifiedAt ? new Date(user.modifiedAt).getTime() : Date.now(),
         }));
   
-        // Log the transformed data
         console.log("Transformed Users Data:", transformedUsers);
   
         setUsers(transformedUsers);
@@ -148,7 +156,6 @@ const [messageType, setMessageType] = useState<"success" | "error" | null>(null)
       console.log("Approve API Response:", data);
   
       if (response.ok && data.status === "approved") {
-        // Update status locally
         setUsers(prev =>
           prev.map(user =>
             user.id === userId ? { ...user, status: "active" } : user
@@ -164,14 +171,13 @@ const [messageType, setMessageType] = useState<"success" | "error" | null>(null)
       } else {
         throw new Error(data.message || "Failed to approve user");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error approving user:", error);
-      setMessage(error.message);
+      const message = error instanceof Error ? error.message : "An unknown error occurred";
+      setMessage(message);
       setMessageType("error");
     }
   };
-  
-  
 
   const handleRowClick = () => {
     setIsModalOpen(true);
@@ -255,7 +261,6 @@ const [messageType, setMessageType] = useState<"success" | "error" | null>(null)
             </div>
           )}
 
-
           <table className="w-full bg-white rounded-lg overflow-auto">
             <thead className="text-[#808A92] font-[600] text-[12px] uppercase border-y border-y-gray-100">
               <tr>
@@ -274,9 +279,7 @@ const [messageType, setMessageType] = useState<"success" | "error" | null>(null)
                 const initials = getInitials(user.firstName, user.lastName);
                 const initialsColor = getInitialsColor(initials);
                 
-                
                 return (
-                  
                   <tr 
                     key={user.id} 
                     onClick={handleRowClick}

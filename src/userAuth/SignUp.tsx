@@ -65,9 +65,9 @@ export default function ControlHub() {
         phoneNumber: formData.phoneNumber,
         department: department
       };
-
+  
       console.log("Data being sent to API:", requestData);
-
+  
       const response = await axios.post(
         "https://auth.tuma-app.com/api/account/save-system-user",
         null,
@@ -81,7 +81,7 @@ export default function ControlHub() {
           }
         }
       );
-
+  
       console.log("API Response:", response.data);
       setApiResponse(response.data);
       
@@ -90,10 +90,14 @@ export default function ControlHub() {
       } else {
         setIsPopupOpen(true);
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error requesting access:", error);
-      if (error.response?.data?.message) {
-        setError(error.response.data.message);
+      if (axios.isAxiosError(error)) {
+        if (error.response?.data?.message) {
+          setError(error.response.data.message);
+        } else {
+          setError("An unexpected error occurred. Please try again.");
+        }
       } else {
         setError("An unexpected error occurred. Please try again.");
       }
@@ -101,6 +105,7 @@ export default function ControlHub() {
       setLoading(false);
     }
   };
+  
 
   return (
     <div className="flex h-screen font-poppins items-center justify-center bg-gray-100">

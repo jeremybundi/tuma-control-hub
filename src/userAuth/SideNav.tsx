@@ -6,9 +6,9 @@ import { usePathname } from "next/navigation";
 import Image from "next/image";
 
 // Import React Icons
-import { FaChartLine, FaExchangeAlt, FaUsers, FaUserShield, FaShieldAlt } from "react-icons/fa";
+import { FaChartLine, FaExchangeAlt, FaUsers, FaShieldAlt } from "react-icons/fa";
 import { FaBell, FaHeadset, FaFileAlt, FaCog } from "react-icons/fa";
-import { FaUser } from "react-icons/fa";
+//import { FaUser } from "react-icons/fa";
 import User from './User';
 import DashboardModal from './DashboardModal';
 

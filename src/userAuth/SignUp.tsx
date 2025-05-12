@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Popup from "@/userAuth/Popup";
 import axios from "axios";
+import { IoIosArrowDown } from "react-icons/io";
 
 export default function ControlHub() {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -22,14 +23,32 @@ export default function ControlHub() {
     account_key?: string;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const departments = [
+    { value: "Tech", label: "Tech" },
+    { value: "Tech", label: "Tech" },
+    { value: "Tech", label: "Tech" },
+    { value: "Tech", label: "Tech" },
+    { value: "Tech", label: "Tech" },
+
+    { value: "Finance", label: "Finance" },
+    { value: "Customer Support", label: "Customer Support" },
+    { value: "Compliance", label: "Compliance" }
+  ];
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
-    // Clear error when user starts typing
+    if (error) setError(null);
+  };
+
+  const handleDepartmentSelect = (value: string) => {
+    setDepartment(value);
+    setIsDropdownOpen(false);
     if (error) setError(null);
   };
 
@@ -39,7 +58,6 @@ export default function ControlHub() {
     setError(null);
     
     try {
-      // Prepare the data to send
       const requestData = {
         firstName: formData.firstName,
         lastName: formData.lastName,
@@ -52,7 +70,7 @@ export default function ControlHub() {
 
       const response = await axios.post(
         "https://auth.tuma-app.com/api/account/save-system-user",
-        null, // We're using params instead of body
+        null,
         {
           params: {
             firstName: requestData.firstName,
@@ -183,22 +201,34 @@ export default function ControlHub() {
             </div>
 
             {/* Department Dropdown */}
-            <div>
+            <div className="relative">
               <label className="block text-xl font-medium text-gray-500">
                 Department <span className="text-red-500">*</span>
               </label>
-              <select
-                value={department}
-                onChange={(e) => setDepartment(e.target.value)}
-                className="mt-1 w-full px-4 py-2 border text-lg border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                required
+              <div 
+                className="mt-1 w-full px-4 py-2 border text-lg border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none flex justify-between items-center cursor-pointer"
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               >
-                <option value="">Select Department</option>
-                <option value="Tech">Tech</option>
-                <option value="Finance">Finance</option>
-                <option value="Customer Support">Customer Support</option>
-                <option value="Compliance">Compliance</option>
-              </select>
+                <span>{department || "Select Department"}</span>
+                <IoIosArrowDown className={`text-gray-500 text-xl transition-transform ${isDropdownOpen ? "transform rotate-180" : ""}`} />
+              </div>
+              {isDropdownOpen && (
+                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg h-[160px] overflow-y-auto">
+                  {departments.map((dept, index) => (
+                    <div key={dept.value}>
+                      <div
+                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                        onClick={() => handleDepartmentSelect(dept.value)}
+                      >
+                        {dept.label}
+                      </div>
+                      {index !== departments.length - 1 && <hr className="border-gray-50" />}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+
             </div>
 
             {/* Error Message */}
@@ -211,7 +241,7 @@ export default function ControlHub() {
             {/* Request for Access Button */}
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !department}
               className="w-full mt-6 bg-gray-800 hover:bg-gray-900 text-white font-semibold text-xl py-3 rounded-lg transition duration-300 disabled:opacity-50"
             >
               {loading ? "Processing..." : "Request for Access"}
@@ -220,7 +250,7 @@ export default function ControlHub() {
         </div>
       </div>
 
-      {/* Popup Component - Only show for successful responses */}
+      {/* Popup Component */}
       {apiResponse?.status === "created" && (
         <Popup 
           isOpen={isPopupOpen} 

@@ -39,7 +39,7 @@ export default function SideNav() {
     {
       href: "/access-manager/user-access",
       icon: <FaUsers className="mr-3" size={20} />,
-      label: "User Access & Roles",
+      label: "User access & roles",
     },
  
     {

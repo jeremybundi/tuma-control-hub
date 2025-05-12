@@ -27,34 +27,95 @@ export default function UserTable() {
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const accessToken = useSelector((state: RootState) => state.auth.accessToken);
+  const [message, setMessage] = useState<string | null>(null);
+const [messageType, setMessageType] = useState<"success" | "error" | null>(null);
+
 
   const getInitials = (firstName: string, lastName: string) =>
     `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
 
+  const getInitialsColor = (initials: string) => {
+    const colors = [
+      "bg-blue-100 text-blue-600",
+      "bg-green-100 text-green-600",
+      "bg-yellow-100 text-yellow-600",
+      "bg-red-100 text-red-600",
+      "bg-purple-100 text-purple-600",
+      "bg-pink-100 text-pink-600",
+      "bg-indigo-100 text-indigo-600",
+      "bg-teal-100 text-teal-600",
+    ];
+    
+    let hash = 0;
+    for (let i = 0; i < initials.length; i++) {
+      hash = initials.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const index = Math.abs(hash) % colors.length;
+    
+    return colors[index];
+  };
+
   useEffect(() => {
-    // Generate mock data
-    const departments = ["Engineering", "Marketing", "HR", "Finance", "Operations"];
-    const firstNames = ["John", "Jane", "Michael", "Emily", "David", "Sarah", "James", "Emma", "Daniel", "Olivia"];
-    const lastNames = ["Doe", "Smith", "Johnson", "Williams", "Brown", "Miller", "Wilson", "Taylor", "Anderson", "Thomas"];
-    const statuses: UserStatus[] = ["active", "suspended", "pending"];
-
-    const mockUsers = Array.from({ length: 20 }, (_, i) => ({
-      id: i + 1,
-      userKey: `user_${i + 1}`,
-      firstName: firstNames[Math.floor(Math.random() * firstNames.length)],
-      lastName: lastNames[Math.floor(Math.random() * lastNames.length)],
-      email: `user${i + 1}@example.com`,
-      phoneNumber: `+2547${Math.floor(10000000 + Math.random() * 90000000)}`,
-      department: departments[Math.floor(Math.random() * departments.length)],
-      status: statuses[Math.floor(Math.random() * statuses.length)],
-      createdAt: Date.now(),
-      modifiedAt: Date.now(),
-    }));
-
-    setUsers(mockUsers);
-    setFilteredUsers(mockUsers);
-  }, []);
+    const fetchUsers = async () => {
+      if (!accessToken) {
+        setError("No access token available");
+        setIsLoading(false);
+        return;
+      }
+  
+      try {
+        const response = await fetch(
+          "https://auth.tuma-app.com/api/account/system-users-requests",
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+  
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+  
+        const data = await response.json();
+        
+        // Log the raw API response data
+        console.log("API Response Data:", data);
+  
+        // Transform the API data to match your User interface
+        const transformedUsers = data.map((user: any) => ({
+          id: user.id,
+          userKey: user.userKey || `user_${user.id}`,
+          firstName: user.firstName || "Unknown",
+          lastName: user.lastName || "User",
+          email: user.email,
+          phoneNumber: user.phoneNumber || "N/A",
+          department: user.department || "N/A",
+          status: user.status ? "active" : "pending", // Convert boolean to status string
+          createdAt: new Date(user.createdAt).getTime() || Date.now(),
+          modifiedAt: new Date(user.modifiedAt).getTime() || Date.now(),
+        }));
+  
+        // Log the transformed data
+        console.log("Transformed Users Data:", transformedUsers);
+  
+        setUsers(transformedUsers);
+        setFilteredUsers(transformedUsers);
+        setError(null);
+      } catch (err) {
+        console.error("Error fetching users:", err);
+        setError("Failed to fetch users");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+  
+    fetchUsers();
+  }, [accessToken]);
 
   useEffect(() => {
     if (searchTerm === "") {
@@ -70,22 +131,47 @@ export default function UserTable() {
 
   const handleApprove = async (userId: number, email: string) => {
     if (!accessToken) return;
-
+  
     try {
-      setUsers(prevUsers =>
-        prevUsers.map(user =>
-          user.id === userId ? { ...user, status: "active" } : user
-        )
+      const response = await fetch(
+        `https://auth.tuma-app.com/api/account/approve-system-user?email=${encodeURIComponent(email)}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+        }
       );
-      setFilteredUsers(prevUsers =>
-        prevUsers.map(user =>
-          user.id === userId ? { ...user, status: "active" } : user
-        )
-      );
-    } catch (error) {
+  
+      const data = await response.json();
+      console.log("Approve API Response:", data);
+  
+      if (response.ok && data.status === "approved") {
+        // Update status locally
+        setUsers(prev =>
+          prev.map(user =>
+            user.id === userId ? { ...user, status: "active" } : user
+          )
+        );
+        setFilteredUsers(prev =>
+          prev.map(user =>
+            user.id === userId ? { ...user, status: "active" } : user
+          )
+        );
+        setMessage(data.message);
+        setMessageType("success");
+      } else {
+        throw new Error(data.message || "Failed to approve user");
+      }
+    } catch (error: any) {
       console.error("Error approving user:", error);
+      setMessage(error.message);
+      setMessageType("error");
     }
   };
+  
+  
 
   const handleRowClick = () => {
     setIsModalOpen(true);
@@ -109,8 +195,34 @@ export default function UserTable() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex h-screen relative">
+        <div className="w-1/5">
+          <SideNav />
+        </div>
+        <div className="w-4/5 p-8 overflow-auto flex items-center justify-center">
+          <p>Loading users...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-screen relative">
+        <div className="w-1/5">
+          <SideNav />
+        </div>
+        <div className="w-4/5 p-8 overflow-auto flex items-center justify-center">
+          <p className="text-red-500">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex h-screen relative">
+    <div className="flex h-screen relative ">
       <div className="w-1/5">
         <SideNav />
       </div>
@@ -131,6 +243,19 @@ export default function UserTable() {
             </div>
           </div>
 
+          {message && (
+            <div
+              className={`p-3 mb-4 rounded-md text-sm ${
+                messageType === "success"
+                  ? "bg-green-100 text-green-800"
+                  : "bg-red-100 text-red-800"
+              }`}
+            >
+              {message}
+            </div>
+          )}
+
+
           <table className="w-full bg-white rounded-lg overflow-auto">
             <thead className="text-[#808A92] font-[600] text-[12px] uppercase border-y border-y-gray-100">
               <tr>
@@ -145,55 +270,62 @@ export default function UserTable() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 text-[13px]">
-              {filteredUsers.map((user, index) => (
-                <tr 
-                  key={user.id} 
-                  onClick={handleRowClick}
-                  className="hover:bg-gray-50 cursor-pointer"
-                >
-                  <td className="py-4 px-3 text-[#808A92]">{index + 1}</td>
-                  <td className="py-2 px-3">
-                    <div className="flex items-center">
-                      <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
-                        <span className="text-blue-600 font-semibold">
-                          {getInitials(user.firstName, user.lastName)}
-                        </span>
+              {filteredUsers.map((user, index) => {
+                const initials = getInitials(user.firstName, user.lastName);
+                const initialsColor = getInitialsColor(initials);
+                
+                
+                return (
+                  
+                  <tr 
+                    key={user.id} 
+                    onClick={handleRowClick}
+                    className="hover:bg-gray-50 cursor-pointer"
+                  >
+                    <td className="py-4 px-3 text-[#808A92]">{index + 1}</td>
+                    <td className="py-2 px-3">
+                      <div className="flex items-center">
+                        <div className={`h-10 w-10 rounded-full flex items-center justify-center mr-3 ${initialsColor.split(' ')[0]}`}>
+                          <span className={`font-semibold ${initialsColor.split(' ')[1]}`}>
+                            {initials}
+                          </span>
+                        </div>
+                        <span>{user.firstName} {user.lastName}</span>
                       </div>
-                      <span>{user.firstName} {user.lastName}</span>
-                    </div>
-                  </td>
-                  <td className="py-4 px-3 text-[#808A92] font-[400]">
-                    {user.email}
-                  </td>
-                  <td className="py-4 px-3 text-[#808A92] font-[400]">
-                    {user.phoneNumber}
-                  </td>
-                  <td className="py-4 px-3">{user.department}</td>
-                  <td className="py-4 px-3">
-                    <span className={`px-2 py-1 rounded-full text-xs ${getStatusStyle(user.status)}`}>
-                      {getStatusText(user.status)}
-                    </span>
-                  </td>
-                  <td className="py-4 px-3">
-                    {user.status === "pending" ? (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleApprove(user.id, user.email);
-                        }}
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-[14px] font-medium transition-colors"
-                      >
-                        Approve
-                      </button>
-                    ) : (
-                      <span className="text-gray-400 text-sm">No action</span>
-                    )}
-                  </td>
-                  <td className="py-4 px-3">
-                    <IoIosArrowForward />
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td className="py-4 px-3 text-[#808A92] font-[400]">
+                      {user.email}
+                    </td>
+                    <td className="py-4 px-3 text-[#808A92] font-[400]">
+                      {user.phoneNumber}
+                    </td>
+                    <td className="py-4 px-3">{user.department}</td>
+                    <td className="py-4 px-3">
+                      <span className={`px-2 py-1 rounded-full text-xs ${getStatusStyle(user.status)}`}>
+                        {getStatusText(user.status)}
+                      </span>
+                    </td>
+                    <td className="py-4 px-3">
+                      {user.status === "pending" ? (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleApprove(user.id, user.email);
+                          }}
+                          className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-[14px] font-medium transition-colors"
+                        >
+                          Approve
+                        </button>
+                      ) : (
+                        <span className="text-gray-400 text-sm">No action</span>
+                      )}
+                    </td>
+                    <td className="py-4 px-3">
+                      <IoIosArrowForward />
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

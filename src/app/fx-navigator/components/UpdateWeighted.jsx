@@ -3,8 +3,13 @@ import Image from 'next/image';
 import closeIcon from '../../../../public/fx/images/close.png';
 import UpdateMarkup from './UpdateMarkup';
 
-const UpdateWeighted = ({ isOpen, onClose, apiResponse }) => {
-  const [editingWeightedAvg, setEditingWeightedAvg] = useState(false);
+const UpdateWeighted = ({ 
+  isOpen, 
+  onClose, 
+  apiResponse,
+  baseCurrency,  // Add this prop
+  targetCurrency // Add this prop
+}) => {  const [editingWeightedAvg, setEditingWeightedAvg] = useState(false);
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showMarkupModal, setShowMarkupModal] = useState(false);
@@ -51,8 +56,7 @@ const UpdateWeighted = ({ isOpen, onClose, apiResponse }) => {
       const bankWeightedAverage = data.find(item => item.paymentRecords === "Bank").weightedAvg;
 
       const response = await fetch(
-        `https://tuma-dev-backend-alb-1553448571.us-east-1.elb.amazonaws.com/api/treasury/apply-transaction-fees?baseCurrency=GBP&targetCurrency=KES&mpesaWeightedAverage=${mpesaWeightedAverage}&paybillWeightedAverage=${paybillWeightedAverage}&bankWeightedAverage=${bankWeightedAverage}`,
-        {
+        `https://tuma-dev-backend-alb-1553448571.us-east-1.elb.amazonaws.com/api/treasury/apply-transaction-fees?baseCurrency=${baseCurrency.code}&targetCurrency=${targetCurrency.code}&mpesaWeightedAverage=${mpesaWeightedAverage}&paybillWeightedAverage=${paybillWeightedAverage}&bankWeightedAverage=${bankWeightedAverage}`,        {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',

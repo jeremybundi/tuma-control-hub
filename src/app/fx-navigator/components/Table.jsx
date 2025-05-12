@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-const Table = () => {
+const Table = ({ baseCurrency, targetCurrency }) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -15,7 +15,7 @@ const Table = () => {
     const fetchData = async () => {
       try {
         const response = await fetch(
-          "https://tuma-dev-backend-alb-1553448571.us-east-1.elb.amazonaws.com/api/treasury/temporal-exchange-rates?baseCurrency=GBP&targetCurrency=KES"
+          `https://tuma-dev-backend-alb-1553448571.us-east-1.elb.amazonaws.com/api/treasury/temporal-exchange-rates?baseCurrency=${baseCurrency}&targetCurrency=${targetCurrency}`
         );
         if (!response.ok) {
           throw new Error("Failed to fetch data");
@@ -67,7 +67,7 @@ const Table = () => {
     };
 
     fetchData();
-  }, );
+  }, [baseCurrency, targetCurrency]); // Add dependencies here
 
   const handleEditClick = (index) => {
     setEditableRow(editableRow === index ? null : index);

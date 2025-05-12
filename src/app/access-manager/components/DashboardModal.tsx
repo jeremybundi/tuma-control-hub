@@ -31,7 +31,7 @@ const DashboardModal: React.FC<DashboardModalProps> = ({ isOpen, onClose }) => {
     { 
       name: "FX Navigator", 
       image: "/images/Tuma_Fx_Navigator.png", 
-      path: "https://tuma-black.vercel.app/",
+      path: "/fx-navigator",
       roles: ["ADMIN", "TREASURY"] 
     },
     { 

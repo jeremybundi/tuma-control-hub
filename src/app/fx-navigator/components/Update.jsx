@@ -6,14 +6,31 @@ import Update1 from './Update1';
 import axios from 'axios';
 
 const Update = ({ isOpen, onClose }) => {
-  //const [dateOfEffect, setDateOfEffect] = useState("2023-10-15");
- // const [timeOfEffect, setTimeOfEffect] = useState("10:30 AM"); 
   const [isEditable, setIsEditable] = useState(false); 
-  const [rateValue, setRateValue] = useState(null); // Initialize as null
+  const [rateValue, setRateValue] = useState(null);
   const [weightedAverage, setWeightedAverage] = useState("0.10"); 
   const [isUpdate1Open, setIsUpdate1Open] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [baseCurrency, setBaseCurrency] = useState('GBP');
+  const [targetCurrency, setTargetCurrency] = useState('KES');
+  const [showBaseDropdown, setShowBaseDropdown] = useState(false);
+  const [showTargetDropdown, setShowTargetDropdown] = useState(false);
+
+  // Base currency options (only GBP, USD, EUR, ZAR)
+  const baseCurrencyOptions = [
+    { code: 'GBP', name: 'GBP', country: 'GB' }, // British Pound Sterling
+    { code: 'USD', name: 'USD', country: 'US' }, // United States Dollar
+    { code: 'EUR', name: 'EUR', country: 'EU' }, // Euro (using EU flag)
+    { code: 'ZAR', name: 'ZAR', country: 'ZA' }, // South African Rand
+  ];
+
+  // Target currency options (only KES, UGX, BIF)
+  const targetCurrencyOptions = [
+    { code: 'KES', name: 'KES', country: 'KE' }, // Kenyan Shilling
+    { code: 'UGX', name: 'UGX', country: 'UG' }, // Ugandan Shilling
+    { code: 'BIF', name: 'BIF', country: 'BI' }, // Burundian Franc
+  ];
 
   useEffect(() => {
     const handleEsc = (event) => {
@@ -25,24 +42,24 @@ const Update = ({ isOpen, onClose }) => {
     return () => window.removeEventListener("keydown", handleEsc);
   }, [onClose]);
 
-  // Fetch exchange rate when component mounts or when isOpen changes
+  // Fetch exchange rate when component mounts or when currencies change
   useEffect(() => {
     if (isOpen) {
       fetchExchangeRate();
     }
-  }, [isOpen]);
+  }, [isOpen, baseCurrency, targetCurrency]);
 
   const fetchExchangeRate = async () => {
     setIsLoading(true);
     setError(null);
-    setRateValue(null); // Reset rate value before fetching
+    setRateValue(null);
     try {
       const response = await axios.get(
         'https://tuma-dev-backend-alb-1553448571.us-east-1.elb.amazonaws.com/api/treasury/temporal-exchange-rates',
         {
           params: {
-            baseCurrency: 'GBP',
-            targetCurrency: 'KES'
+            baseCurrency,
+            targetCurrency
           }
         }
       );
@@ -50,14 +67,13 @@ const Update = ({ isOpen, onClose }) => {
     } catch (err) {
       setError('Failed to fetch exchange rate. Please try again later.');
       console.error('Error fetching exchange rate:', err);
-      // Don't set any fallback value
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleRateClick = () => {
-    if (rateValue) { // Only allow editing if we have a rate value
+    if (rateValue) {
       setIsEditable(true); 
       setIsUpdate1Open(true); 
     }
@@ -71,18 +87,44 @@ const Update = ({ isOpen, onClose }) => {
     setIsEditable(false); 
   };
 
+  const selectBaseCurrency = (currency) => {
+    setBaseCurrency(currency.code);
+    setShowBaseDropdown(false);
+  };
+
+  const selectTargetCurrency = (currency) => {
+    setTargetCurrency(currency.code);
+    setShowTargetDropdown(false);
+  };
+
+  const getFlagUrl = (countryCode) => {
+    if (typeof countryCode === 'string') {
+      return `https://flagcdn.com/w20/${countryCode.toLowerCase()}.png`;
+    }
+    return '';
+  };
+  
+
+  const getCurrentBaseCurrency = () => {
+    return baseCurrencyOptions.find(c => c.code === baseCurrency);
+  };
+
+  const getCurrentTargetCurrency = () => {
+    return targetCurrencyOptions.find(c => c.code === targetCurrency);
+  };
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center font-poppins justify-end bg-black/50  bg-opacity-50 z-50">
+    <div className="fixed inset-0 flex items-center font-poppins justify-end bg-black/50 bg-opacity-50 z-50">
       <div className="bg-[#F3F5F8] p-6 w-[740px] rounded-lg h-screen shadow-lg">
         <span className="justify-between">
           <span className="flex flex-col">
-            <h2 className="text-xl font-bold mb-4">Tuma App Ratess</h2>
+            <h2 className="text-xl font-bold mb-4">Tuma App Rates</h2>
           </span>
 
           <button className="absolute top-3 right-3" onClick={onClose}>
-            <Image src={closeIcon} alt="Close Modal" width={40} height={35} />
+            <Image src={closeIcon} alt="Close Modal" width={30} height={35} />
           </button>
         </span>
 
@@ -99,16 +141,52 @@ const Update = ({ isOpen, onClose }) => {
         {rateValue ? (
           <div className="bg-white rounded-xl items-center flex px-6 p-5">
             <p className="text-xl font-[700] mr-4">Current Bank Rate</p>
-            <span className="border items-center flex rounded-lg px-3 py-2">
+            <span className="border items-center flex rounded-lg px-3 py-2 relative">
               <h1 className="px-4 mr-2 text-[20px] font-semibold">1</h1>
-              <span className="px-2 rounded-lg flex gap-3 py-1 bg-[#F3F5F8]">
-                <Image src="/fx/images/gbp.png" alt="GBP" width={25} height={16} />
-                <p className="ml-1 mr- text-[16px] font-500">GBP</p>
-                <Image src="/fx/svgs/arrow.svg" alt="Arrow" width={16} height={20} />
+              <span 
+                className="px-2 rounded-lg flex gap-3 py-1 bg-[#F3F5F8] cursor-pointer"
+                onClick={() => setShowBaseDropdown(!showBaseDropdown)}
+              >
+                {getCurrentBaseCurrency() && (
+                  <>
+                    <Image 
+                      src={getFlagUrl(getCurrentBaseCurrency().country)} 
+                      alt={getCurrentBaseCurrency().code} 
+                      width={30} 
+                      height={8} 
+                      className="py-1 rounded-md"
+                    />
+                    <p className="ml-1 mr- text-[16px] font-500">{getCurrentBaseCurrency().code}</p>
+                    <Image src="/fx/svgs/arrow.svg" alt="Arrow" width={16} height={20} />
+                  </>
+                )}
               </span>
+              
+              {showBaseDropdown && (
+                <div className="absolute top-12 left-0 z-10 bg-white border border-gray-300 rounded-lg shadow-lg w-32">
+                  {baseCurrencyOptions.map((currency) => (
+                    <div 
+                      key={currency.code}
+                      className="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                      onClick={() => selectBaseCurrency(currency)}
+                    >
+                      <Image 
+                        src={getFlagUrl(currency.country)} 
+                        alt={currency.code} 
+                        width={20} 
+                        height={15} 
+                        className="mr-2"
+                      />
+                      <span>{currency.code}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </span>
+            
             <p className="mx-5 text-gray-800 text-2xl font-[600]">=</p>
-            <span className="border items-center flex rounded-lg px-3 py-2">
+            
+            <span className="border items-center flex rounded-lg px-3 py-2 relative">
               {isEditable ? (
                 <input
                   type="text"
@@ -123,11 +201,46 @@ const Update = ({ isOpen, onClose }) => {
                   {rateValue}
                 </h1>
               )}
-              <span className="px-2 rounded-lg flex gap-3 py-1 bg-[#F3F5F8]">
-                <Image src="/fx/images/kes.png" alt="kes" width={25} height={16} />
-                <p className="ml-1  text-[20px] font-500">KES</p>
-                <Image src="/fx/svgs/arrow.svg" alt="Arrow" width={16} height={20} />
+              
+              <span 
+                className="px-2 rounded-lg flex gap-3 py-1 bg-[#F3F5F8] cursor-pointer"
+                onClick={() => setShowTargetDropdown(!showTargetDropdown)}
+              >
+                {getCurrentTargetCurrency() && (
+                  <>
+                    <Image 
+                      src={getFlagUrl(getCurrentTargetCurrency().country)} 
+                      alt={getCurrentTargetCurrency().code} 
+                      width={30} 
+                      height={8}
+                      className="py-2 rounded-md" 
+                    />
+                    <p className="ml-1 text-[20px] font-500">{getCurrentTargetCurrency().code}</p>
+                    <Image src="/fx/svgs/arrow.svg" alt="Arrow" width={16} height={20} />
+                  </>
+                )}
               </span>
+              
+              {showTargetDropdown && (
+                <div className="absolute top-12 right-0 z-10 bg-white border border-gray-300 rounded-lg shadow-lg w-32">
+                  {targetCurrencyOptions.map((currency) => (
+                    <div 
+                      key={currency.code}
+                      className="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                      onClick={() => selectTargetCurrency(currency)}
+                    >
+                      <Image 
+                        src={getFlagUrl(currency.country)} 
+                        alt={currency.code} 
+                        width={20} 
+                        height={15} 
+                        className="mr-2"
+                      />
+                      <span>{currency.code}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </span>
           </div>
         ) : !isLoading && !error ? (
@@ -139,55 +252,21 @@ const Update = ({ isOpen, onClose }) => {
         {rateValue && (
           <>
             <div>
-              <Table />
+            <Table baseCurrency={baseCurrency} targetCurrency={targetCurrency} />
             </div>
-
-            {/* Date of Effect Section 
-            <div className="mt-6">
-              <div className="flex gap-4">
-                <div className="flex flex-col">
-                  <label className="text-[17px] font-medium text-gray-700 mb-2">Date Of Effect</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={dateOfEffect}
-                      readOnly
-                      className="block w-48 px-6 py-3 border border-gray-300 text-[16px] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 pl-12"
-                    />
-                    <div className="absolute inset-y-0 left-0 flex items-center pl-3">
-                      <Image src="/svgs/calendar.svg" alt="Calendar" width={26} height={20} />
-                    </div>
-                  </div>
-                </div>
-                <div className="flex flex-col">
-                  <label className="text-[17px] font-medium text-gray-700 mb-2">Time Of Effect</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={timeOfEffect}
-                      readOnly
-                      className="block w-48 px-6 py-3 border border-gray-300 text-[16px] rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 pl-12"
-                    />
-                    <div className="absolute inset-y-0 left-0 flex items-center pl-3">
-                      <Image src="/svgs/clock.svg" alt="Clock" width={26} height={25} />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>*/}
           </>
         )}
       </div>
+      <Update1
+  isOpen={isUpdate1Open}
+  onClose={() => setIsUpdate1Open(false)}
+  rateValue={rateValue}
+  onRateChange={handleRateChange}
+  baseCurrency={getCurrentBaseCurrency()}  // Pass the full currency object
+  targetCurrency={getCurrentTargetCurrency()}  // Pass the full currency object
+  getFlagUrl={getFlagUrl}
+/>
 
-      {/* Render the Update1 modal */}
-      {isUpdate1Open && (
-        <Update1
-          isOpen={isUpdate1Open}
-          onClose={() => setIsUpdate1Open(false)}
-          rateValue={rateValue}
-          onRateChange={handleRateChange}
-        />
-      )}
     </div>
   );
 };

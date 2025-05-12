@@ -25,7 +25,7 @@ export default function AuditTrail() {
         }
 
         const data = await response.json();
-        console.log('API response data:', data);
+        //console.log('API response data:', data);
 
         // Transform and sort the API data
         const transformedData = data.map(item => {

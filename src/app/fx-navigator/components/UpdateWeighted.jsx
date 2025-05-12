@@ -172,7 +172,9 @@ const UpdateWeighted = ({
         <UpdateMarkup 
           isOpen={showMarkupModal} 
           onClose={handleCloseMarkupModal} 
-          apiResponse={markupApiResponse.data} 
+          apiResponse={markupApiResponse.data}
+          baseCurrency={baseCurrency}
+          targetCurrency={targetCurrency}
         />
       )}
     </>

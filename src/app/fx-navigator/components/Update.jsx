@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Image from 'next/image';
 import Table from './Table';
 import closeIcon from '../../../../public/fx/images/close.png';
@@ -17,6 +17,12 @@ const Update = ({ isOpen, onClose }) => {
   const [showBaseDropdown, setShowBaseDropdown] = useState(false);
   const [showTargetDropdown, setShowTargetDropdown] = useState(false);
 
+  // Create refs for the dropdown containers
+  const baseDropdownRef = useRef(null);
+  const targetDropdownRef = useRef(null);
+  const baseCurrencyButtonRef = useRef(null);
+  const targetCurrencyButtonRef = useRef(null);
+
   // Base currency options (only GBP, USD, EUR, ZAR)
   const baseCurrencyOptions = [
     { code: 'GBP', name: 'GBP', country: 'GB' }, // British Pound Sterling
@@ -28,8 +34,8 @@ const Update = ({ isOpen, onClose }) => {
   // Target currency options (only KES, UGX, BIF)
   const targetCurrencyOptions = [
     { code: 'KES', name: 'KES', country: 'KE' }, // Kenyan Shilling
-    { code: 'UGX', name: 'UGX', country: 'UG' }, // Ugandan Shilling
-    { code: 'BIF', name: 'BIF', country: 'BI' }, // Burundian Franc
+    // { code: 'UGX', name: 'UGX', country: 'UG' }, // Ugandan Shilling
+    // { code: 'BIF', name: 'BIF', country: 'BI' }, // Burundian Franc
   ];
 
   useEffect(() => {
@@ -41,6 +47,36 @@ const Update = ({ isOpen, onClose }) => {
     window.addEventListener("keydown", handleEsc);
     return () => window.removeEventListener("keydown", handleEsc);
   }, [onClose]);
+
+  // Add click outside handler for dropdowns
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // For base currency dropdown
+      if (showBaseDropdown && 
+          baseDropdownRef.current && 
+          !baseDropdownRef.current.contains(event.target) &&
+          !baseCurrencyButtonRef.current.contains(event.target)) {
+        setShowBaseDropdown(false);
+      }
+      
+      // For target currency dropdown
+      if (showTargetDropdown && 
+          targetDropdownRef.current && 
+          !targetDropdownRef.current.contains(event.target) &&
+          !targetCurrencyButtonRef.current.contains(event.target)) {
+        setShowTargetDropdown(false);
+      }
+    };
+
+    // Only add the event listener if dropdowns are open
+    if (showBaseDropdown || showTargetDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showBaseDropdown, showTargetDropdown]);
 
   // Fetch exchange rate when component mounts or when currencies change
   useEffect(() => {
@@ -104,7 +140,6 @@ const Update = ({ isOpen, onClose }) => {
     return '';
   };
   
-
   const getCurrentBaseCurrency = () => {
     return baseCurrencyOptions.find(c => c.code === baseCurrency);
   };
@@ -116,7 +151,7 @@ const Update = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center font-poppins justify-end bg-black/50 bg-opacity-50 z-50">
+    <div className="fixed inset-0 flex items-center font-poppins justify-end bg-black/30 bg-opacity-50 z-50">
       <div className="bg-[#F3F5F8] p-6 w-[740px] rounded-lg h-screen shadow-lg">
         <span className="justify-between">
           <span className="flex flex-col">
@@ -144,6 +179,7 @@ const Update = ({ isOpen, onClose }) => {
             <span className="border items-center flex rounded-lg px-3 py-2 relative">
               <h1 className="px-4 mr-2 text-[20px] font-semibold">1</h1>
               <span 
+                ref={baseCurrencyButtonRef}
                 className="px-2 rounded-lg flex gap-3 py-1 bg-[#F3F5F8] cursor-pointer"
                 onClick={() => setShowBaseDropdown(!showBaseDropdown)}
               >
@@ -163,7 +199,10 @@ const Update = ({ isOpen, onClose }) => {
               </span>
               
               {showBaseDropdown && (
-                <div className="absolute top-12 left-0 z-10 bg-white border border-gray-300 rounded-lg shadow-lg w-32">
+                <div 
+                  ref={baseDropdownRef}
+                  className="absolute top-11 right-0 z-10 bg-white border border-gray-300 rounded-lg shadow-lg w-32"
+                >
                   {baseCurrencyOptions.map((currency) => (
                     <div 
                       key={currency.code}
@@ -203,6 +242,7 @@ const Update = ({ isOpen, onClose }) => {
               )}
               
               <span 
+                ref={targetCurrencyButtonRef}
                 className="px-2 rounded-lg flex gap-3 py-1 bg-[#F3F5F8] cursor-pointer"
                 onClick={() => setShowTargetDropdown(!showTargetDropdown)}
               >
@@ -222,7 +262,10 @@ const Update = ({ isOpen, onClose }) => {
               </span>
               
               {showTargetDropdown && (
-                <div className="absolute top-12 right-0 z-10 bg-white border border-gray-300 rounded-lg shadow-lg w-32">
+                <div 
+                  ref={targetDropdownRef}
+                  className="absolute top-12 right-0 z-10 bg-white border border-gray-300 rounded-lg shadow-lg w-32"
+                >
                   {targetCurrencyOptions.map((currency) => (
                     <div 
                       key={currency.code}
@@ -258,15 +301,14 @@ const Update = ({ isOpen, onClose }) => {
         )}
       </div>
       <Update1
-  isOpen={isUpdate1Open}
-  onClose={() => setIsUpdate1Open(false)}
-  rateValue={rateValue}
-  onRateChange={handleRateChange}
-  baseCurrency={getCurrentBaseCurrency()}  // Pass the full currency object
-  targetCurrency={getCurrentTargetCurrency()}  // Pass the full currency object
-  getFlagUrl={getFlagUrl}
-/>
-
+        isOpen={isUpdate1Open}
+        onClose={() => setIsUpdate1Open(false)}
+        rateValue={rateValue}
+        onRateChange={handleRateChange}
+        baseCurrency={getCurrentBaseCurrency()}
+        targetCurrency={getCurrentTargetCurrency()}
+        getFlagUrl={getFlagUrl}
+      />
     </div>
   );
 };

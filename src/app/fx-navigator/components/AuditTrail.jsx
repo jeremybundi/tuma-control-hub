@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux'; // Import useSelector
 
 export default function AuditTrail() {
   const [records, setRecords] = useState([]);
@@ -7,15 +8,29 @@ export default function AuditTrail() {
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 15;
 
+  // Get the access token from Redux store
+  const accessToken = useSelector(state => state.auth.accessToken);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Prepare headers with authorization if token exists
+        const headers = {
+          'Content-Type': 'application/json'
+        };
+
+        if (accessToken) {
+          headers['Authorization'] = `Bearer ${accessToken}`;
+          // Log the token being sent
+        //  console.log('Authorization Token being sent:', accessToken);
+        } else {
+          console.log('No access token available');
+        }
+
         const response = await fetch(
           'https://tuma-dev-backend-alb-1553448571.us-east-1.elb.amazonaws.com/api/treasury/currency-exchange-history?page=0&size=20',
           {
-            headers: {
-              'Content-Type': 'application/json'
-            }
+            headers
           }
         );
 
@@ -25,8 +40,7 @@ export default function AuditTrail() {
         }
 
         const data = await response.json();
-        //console.log('API response data:', data);
-
+        
         // Transform and sort the API data
         const transformedData = data.map(item => {
           const dateOfEffectObj = new Date(item.dateOfEffect);
@@ -106,7 +120,7 @@ export default function AuditTrail() {
     };
 
     fetchData();
-  }, );
+  }, [accessToken]); // Add accessToken to dependency array
 
   const totalPages = Math.ceil(records.length / recordsPerPage);
   const paginate = (pageNumber) => {

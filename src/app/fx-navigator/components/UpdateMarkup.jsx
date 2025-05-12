@@ -6,7 +6,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 import ConfirmUpdate from './ConfirmUpdate';
 import SuccessModal from './SuccessModal';
 
-const UpdateMarkup = ({ isOpen, onClose, apiResponse }) => {
+const UpdateMarkup = ({ isOpen, onClose,   apiResponse, baseCurrency, targetCurrency }) => {
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [manualExpiry, setManualExpiry] = useState(new Date());
@@ -128,8 +128,8 @@ const UpdateMarkup = ({ isOpen, onClose, apiResponse }) => {
     };
   
     return {
-      baseCurrency: 'GBP',
-      targetCurrency: 'KES',
+      baseCurrency: baseCurrency.code, 
+      targetCurrency: targetCurrency.code,
       paybillRate: paybillData.finalRate,
       paybillMarkUp: parseFloat(paybillData.markup) / 100,
       mpesaRate: mpesaData.finalRate,

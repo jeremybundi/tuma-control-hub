@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import Popup from "@/userAuth/Popup";
+import Popup from "@/app/access-manager/components/Popup";
 import axios from "axios";
 import { IoIosArrowDown } from "react-icons/io";
 
@@ -113,7 +113,7 @@ export default function ControlHub() {
         {/* Left Column: Image */}
         <div className="w-1/2 relative">
           <Image
-            src="/images/lady.png"
+            src="/user-access/images/lady.png"
             alt="Lady"
             width={500}
             height={500}

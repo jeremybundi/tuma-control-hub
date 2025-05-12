@@ -44,7 +44,7 @@ const Login = () => {
         {/* Left Column: Image */}
         <div className="w-1/2 relative">
           <Image
-            src="/images/lady.png"
+            src="/user-access/images/lady.png"
             alt="Lady"
             width={500}
             height={500}

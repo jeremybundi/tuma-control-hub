@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import SideNav from "@/userAuth/SideNav";
+import SideNav from "@/app/access-manager/components/SideNav";
 import { RootState } from "@/store/store";
 import { IoIosSearch, IoIosArrowForward } from "react-icons/io";
-import AssignRoleModal from "@/userAuth/AssignRole";
+import AssignRoleModal from "@/app/access-manager/components/AssignRole";
 
 type UserStatus = "active" | "suspended" | "pending";
 

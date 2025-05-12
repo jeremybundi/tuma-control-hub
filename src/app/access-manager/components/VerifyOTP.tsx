@@ -6,7 +6,7 @@ import Image from "next/image";
 import DashboardModal from "./DashboardModal";
 import axios from "axios";
 import { useDispatch } from "react-redux";
-import { setCredentials } from "../store/authSlice";
+import { setCredentials } from "../../../store/authSlice";
 import {jwtDecode} from "jwt-decode"; // Make sure to install this package
 
 interface DecodedToken {
@@ -157,7 +157,7 @@ const VerifyOTPContent = () => {
           {/* Left Column: Image */}
           <div className="w-1/2 relative">
             <Image
-              src="/images/lady.png"
+              src="/user-access/images/lady.png"
               alt="Verification"
               width={500}
               height={500}
@@ -170,7 +170,7 @@ const VerifyOTPContent = () => {
           <div className="w-1/2 mt-32 px-24 pr-40">
             <h2 className="text-4xl font-bold text-gray-800 mb-12 flex items-center gap-4">
               <Image 
-                src="/images/logo.png" 
+                src="/user-access/images/logo.png" 
                 alt="Logo" 
                 width={40} 
                 height={35} 
@@ -187,7 +187,7 @@ const VerifyOTPContent = () => {
               <span className="font-medium text-gray-900 flex items-center">
                 {email}          
                 <Image 
-                  src="/images/pen.png" 
+                  src="/user-access/images/pen.png" 
                   alt="Edit" 
                   width={16} 
                   height={16} 

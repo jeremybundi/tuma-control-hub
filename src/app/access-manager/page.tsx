@@ -1,6 +1,6 @@
 "use client";
 
-import SideNav from "@/userAuth/SideNav";
+import SideNav from "@/app/access-manager/components/SideNav";
 
 export default function OTPPage() {
   return (

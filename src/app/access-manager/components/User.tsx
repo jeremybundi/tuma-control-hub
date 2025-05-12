@@ -9,9 +9,9 @@ import {
   FiLogOut
 } from 'react-icons/fi';
 import { useDispatch, useSelector } from 'react-redux';
-import { clearCredentials } from '../store/authSlice';
+import { clearCredentials } from '../../../store/authSlice';
 import { useRouter } from 'next/navigation';
-import { RootState } from '../store/store';
+import { RootState } from '../../../store/store';
 
 export default function User() {
   const [isModalOpen, setIsModalOpen] = useState(false);

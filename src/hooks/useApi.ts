@@ -1,6 +1,6 @@
 // hooks/useApi.ts
 import api from '../utils/apiService';
-import type { AxiosRequestConfig, AxiosResponse, AxiosHeaders } from 'axios';
+import type { AxiosRequestConfig, AxiosResponse } from 'axios';
 
 const useApi = () => {
   const get = async <T>(

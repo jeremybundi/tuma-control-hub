@@ -4,6 +4,15 @@ import { ReactNode } from 'react';
 import { Provider } from 'react-redux';
 import { persistor, store } from '../store/store';
 import { PersistGate } from 'redux-persist/integration/react';
+import { injectStore } from '../utils/apiService';
+import { injectStores } from '../utils/apiAuth';
+
+
+
+injectStore(store); 
+injectStores(store); 
+
+
 
 export function ReduxProvider({ children }: { children: ReactNode }) {
   return (

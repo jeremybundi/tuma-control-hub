@@ -62,7 +62,7 @@ const VerifyOTPContent = () => {
     try {
       console.log("Sending OTP verification request...");
       const response = await axios.post(
-        "https://auth.tuma-app.com/api/auth/email",
+        "http://tuma-dev-backend-auth-alb-2099885708.us-east-1.elb.amazonaws.com/api/auth/email",
         {
           email: email,
           verificationCode: verificationCode

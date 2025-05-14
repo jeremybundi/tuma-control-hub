@@ -8,7 +8,7 @@ const SuccessModal = ({ isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 flex items-center font-poppins justify-end bg-opacity-30 z-50">
-      <div className="bg-white p-6 w-[830px] px-10 h-screen rounded-lg shadow-lg flex flex-col items-center justify-center">
+      <div className="bg-white p-6 w-[760px] px-10 h-screen rounded-lg shadow-lg flex flex-col items-center justify-center">
         <div className="flex flex-col items-center text-center">
           <Image 
             src={successIcon} 

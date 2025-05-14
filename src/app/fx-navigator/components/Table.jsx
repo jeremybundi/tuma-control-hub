@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import api from "../../../utils/apiService";
 
 const Table = ({ baseCurrency, targetCurrency }) => {
   const [data, setData] = useState([]);
@@ -6,7 +7,6 @@ const Table = ({ baseCurrency, targetCurrency }) => {
   const [error, setError] = useState(null);
   const [editableRow, setEditableRow] = useState(null);
 
-  // Helper function to format numbers to 2 decimal places
   const formatToTwoDecimals = (value) => {
     return parseFloat(value).toFixed(2);
   };
@@ -14,38 +14,37 @@ const Table = ({ baseCurrency, targetCurrency }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(
-          `https://tuma-dev-backend-alb-1553448571.us-east-1.elb.amazonaws.com/api/treasury/temporal-exchange-rates?baseCurrency=${baseCurrency}&targetCurrency=${targetCurrency}`
-        );
-        if (!response.ok) {
-          throw new Error("Failed to fetch data");
-        }
-        const apiData = await response.json();
+        setLoading(true);
+        const response = await api.get('/treasury/temporal-exchange-rates', {
+          params: { baseCurrency, targetCurrency }
+        });
         
-        // Transform the API data to match your table structure with 2 decimal places
+        const apiData = response.data;
+        console.log("API Data:", apiData); // Debug log
+        
         const transformedData = [
           { 
             paymentRecords: "Paybill", 
             icon: "/fx/svgs/paybill.svg", 
-            tumaRate: formatToTwoDecimals(apiData.rateAtCost),
-            weightedAvg: formatToTwoDecimals(apiData.paybillWeightedAvg),
-            markup: formatToTwoDecimals(apiData.paybillMarkUp),
+            tumaRate: formatToTwoDecimals(apiData.interBankRate), // Changed from rateAtCost
+            weightedAvg: formatToTwoDecimals(apiData.paybillWeightedAvg || 0),
+            markup: formatToTwoDecimals(apiData.paybillMarkUp || 0),
             finalRate: formatToTwoDecimals(apiData.paybillRate)
           },
           { 
             paymentRecords: "MPESA", 
             icon: "/fx/svgs/mpesa.svg", 
-            tumaRate: formatToTwoDecimals(apiData.rateAtCost),
-            weightedAvg: formatToTwoDecimals(apiData.mpesaWeightedAvg),
-            markup: formatToTwoDecimals(apiData.mpesaMarkUp),
+            tumaRate: formatToTwoDecimals(apiData.interBankRate), // Changed from rateAtCost
+            weightedAvg: formatToTwoDecimals(apiData.mpesaWeightedAvg || 0),
+            markup: formatToTwoDecimals(apiData.mpesaMarkUp || 0),
             finalRate: formatToTwoDecimals(apiData.mpesaRate)
           },
           { 
             paymentRecords: "Bank", 
             icon: "/fx/svgs/Bank.svg", 
-            tumaRate: formatToTwoDecimals(apiData.rateAtCost),
-            weightedAvg: formatToTwoDecimals(apiData.bankWeightedAvg),
-            markup: formatToTwoDecimals(apiData.bankMarkUp),
+            tumaRate: formatToTwoDecimals(apiData.interBankRate), // Changed from rateAtCost
+            weightedAvg: formatToTwoDecimals(apiData.bankWeightedAvg || 0),
+            markup: formatToTwoDecimals(apiData.bankMarkUp || 0),
             finalRate: formatToTwoDecimals(apiData.bankRate)
           },
           { 
@@ -59,15 +58,16 @@ const Table = ({ baseCurrency, targetCurrency }) => {
         ];
         
         setData(transformedData);
-        setLoading(false);
       } catch (error) {
-        setError(error.message);
+        console.error("Fetch error:", error);
+        setError(error.message || "Failed to fetch data");
+      } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [baseCurrency, targetCurrency]); // Add dependencies here
+  }, [baseCurrency, targetCurrency]);
 
   const handleEditClick = (index) => {
     setEditableRow(editableRow === index ? null : index);

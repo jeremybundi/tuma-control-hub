@@ -5,6 +5,7 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import ConfirmUpdate from './ConfirmUpdate';
 import SuccessModal from './SuccessModal';
+import api from '../../../utils/apiService'; // Import the api instance
 
 const UpdateMarkup = ({ isOpen, onClose,   apiResponse, baseCurrency, targetCurrency }) => {
   const [data, setData] = useState([]);
@@ -146,38 +147,25 @@ const UpdateMarkup = ({ isOpen, onClose,   apiResponse, baseCurrency, targetCurr
     try {
       const apiData = prepareApiData();
       
-      // Add console.log here to show the final data being sent
       console.log('Data being sent to API:', apiData);
       
-      const url = new URL(
-        'https://tuma-dev-backend-alb-1553448571.us-east-1.elb.amazonaws.com/api/treasury/save-final-rates'
-      );
+      // Using the api middleware with query parameters
+      await api.put('/treasury/save-final-rates', null, {
+        params: apiData
+      });
       
-      Object.entries(apiData).forEach(([key, value]) => {
-        url.searchParams.append(key, value);
-      });
-  
-      const response = await fetch(url, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
-  
-      if (!response.ok) {
-        throw new Error(`API request failed with status ${response.status}`);
-      }
-  
-      await response.json();
       setShowSuccessModal(true); 
       setShowConfirmModal(false);
     } catch (error) {
+      console.error('Failed to save rates:', error);
       alert(`Failed to save rates: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
   };
 
+    
+  
   const handleSuccessClose = () => {
     setShowSuccessModal(false);
     onClose();
@@ -194,7 +182,7 @@ const UpdateMarkup = ({ isOpen, onClose,   apiResponse, baseCurrency, targetCurr
               <h2 className="text-xl font-bold mb-4">Update Final Rates</h2>
             </span>
             <button className="absolute top-3 right-3" onClick={onClose}>
-              <Image src={closeIcon} alt="Close Modal" width={40} height={35} />
+              <Image src={closeIcon} alt="Close Modal" width={25} height={35} />
             </button>
           </div>
 

@@ -4,6 +4,8 @@ import Table from './Table';
 import closeIcon from '../../../../public/fx/images/close.png';
 import Update1 from './Update1'; 
 import axios from 'axios';
+import api from "../../../utils/apiService"; // Update the path as needed
+
 
 const Update = ({ isOpen, onClose }) => {
   const [isEditable, setIsEditable] = useState(false); 
@@ -90,8 +92,8 @@ const Update = ({ isOpen, onClose }) => {
     setError(null);
     setRateValue(null);
     try {
-      const response = await axios.get(
-        'https://tuma-dev-backend-alb-1553448571.us-east-1.elb.amazonaws.com/api/treasury/temporal-exchange-rates',
+      const response = await api.get(
+        '/treasury/temporal-exchange-rates',
         {
           params: {
             baseCurrency,

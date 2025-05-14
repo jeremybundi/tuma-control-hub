@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../../../utils/apiService";
 import Image from "next/image";
 import Update from "./Update";
 
@@ -15,39 +15,43 @@ const Section = () => {
 
   const fetchRates = async () => {
     try {
-      const url = `https://tuma-dev-backend-alb-1553448571.us-east-1.elb.amazonaws.com/api/treasury/latest-exchange-rate?baseCurrency=GBP&targetCurrency=KES`;
-
-      const response = await axios.get(url);
-
+      const response = await api.get('/treasury/latest-exchange-rate?baseCurrency=GBP&targetCurrency=KES');
+      
+     // console.log("API Response:", response); // This shows the response has a data property
+  
+      // Access the data property of the response
+      const responseData = response.data;
+      
       setRates({
-        paybill: response.data.paybillRate,
-        mpesa: response.data.mpesaRate,
-        bank: response.data.bankRate,
-        card: response.data.currentRate,
+        paybill: responseData.paybillRate,
+        mpesa: responseData.mpesaRate,
+        bank: responseData.bankRate,
+        card: responseData.currentRate,
       });
-
-      if (response.data.updatedAt) {
-        const updatedDate = new Date(response.data.updatedAt);
+  
+      if (responseData.updatedAt) {
+        const updatedDate = new Date(responseData.updatedAt);
         updatedDate.setHours(updatedDate.getHours() + 3); // EAT
-
+  
         const formattedDate = updatedDate.toLocaleDateString("en-GB", {
           day: "2-digit",
           month: "2-digit",
           year: "2-digit",
         });
-
+  
         const formattedTime = updatedDate.toLocaleTimeString("en-GB", {
           hour: "2-digit",
           minute: "2-digit",
           hour12: false,
         }).replace(/\./g, "");
-
+  
         setLastUpdated(`Updated on ${formattedDate}, ${formattedTime}`);
       }
     } catch (error) {
       console.error("Error fetching rates:", error);
     }
   };
+
 
   useEffect(() => {
     fetchRates();
@@ -93,14 +97,15 @@ const RateCard = ({ icon, label, rate, color }) => (
     <Image
       src={icon}
       alt={label}
-      className="mr-4 p-3 bg-[#F3F5F8] rounded-full"
+      className={`mr-4 rounded-full ${label === "MPESA" ? "px-3 py-4" : "p-3"} bg-[#F3F5F8]`}
       width={50}
       height={50}
     />
     <span className="flex flex-col">
-      <h1 className="font-[700] text-[16px] text-[#101820] ">
-        {rate !== null ? `KES ${rate.toFixed(3)}` : "Loading..."}
-      </h1>
+    <h1 className="font-[700] text-[16px] text-[#101820] ">
+  {rate != null ? `KES ${Number(rate).toFixed(2)}` : "Loading..."}
+</h1>
+
       <p
         className="mt-1 text-[12px] w-fit px-2 rounded-md font-500"
         style={{

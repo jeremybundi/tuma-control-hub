@@ -14,11 +14,11 @@ const ConfirmUpdate = ({
 
   return (
     <div className="fixed inset-0 flex items-center font-poppins justify-end bg-opacity-30 z-50">
-      <div className="bg-white p-6 w-[830px] px-10 h-screen rounded-lg shadow-lg flex flex-col">
+      <div className="bg-white p-6 w-[760px] px-10 h-screen rounded-lg shadow-lg flex flex-col">
         <h2 className="text-3xl text-center text-gray-500 font-[700] mt-32">Confirm Changes</h2>
       
         <button className="absolute top-3 right-3" onClick={onClose}>
-          <Image src={closeIcon} alt="Close Modal" width={40} height={35} />
+          <Image src={closeIcon} alt="Close Modal" width={25} height={35} />
         </button>
 
         <div className="overflow-x-auto mx-8 rounded-t-xl mt-4 p-4">

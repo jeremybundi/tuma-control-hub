@@ -6,12 +6,14 @@ import SideNav from "@/app/access-manager/components/SideNav";
 import { RootState } from "@/store/store";
 import { IoIosSearch, IoIosArrowForward } from "react-icons/io";
 import AssignRoleModal from "@/app/access-manager/components/AssignRole";
+import api from "../../../utils/apiAuth";
 
-type UserStatus = "active" | "suspended" | "pending";
+type UserStatus = "active" |  "pending";
 
 interface User {
   id: number;
   userKey: string;
+  accountKey: string | null;
   firstName: string;
   lastName: string;
   email: string;
@@ -25,6 +27,7 @@ interface User {
 interface ApiUser {
   id: number;
   userKey?: string;
+  accountKey?: string | null;
   firstName?: string;
   lastName?: string;
   email: string;
@@ -60,57 +63,37 @@ export default function UserTable() {
       "bg-indigo-100 text-indigo-600",
       "bg-teal-100 text-teal-600",
     ];
-    
+
     let hash = 0;
     for (let i = 0; i < initials.length; i++) {
       hash = initials.charCodeAt(i) + ((hash << 5) - hash);
     }
     const index = Math.abs(hash) % colors.length;
-    
+
     return colors[index];
   };
 
   useEffect(() => {
     const fetchUsers = async () => {
-      if (!accessToken) {
-        setError("No access token available");
-        setIsLoading(false);
-        return;
-      }
-  
       try {
-        const response = await fetch(
-          "https://auth.tuma-app.com/api/account/system-users-requests",
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-              "Content-Type": "application/json",
-            },
-          }
-        );
-  
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-  
-        const data = await response.json();
-        console.log("API Response Data:", data);
-  
-        const transformedUsers = data.map((user: ApiUser) => ({
+        const response = await api.get<ApiUser[]>("/account/system-users-requests");
+        
+        // The API returns the array directly, so we use response.data
+        const transformedUsers = response.data.map((user: ApiUser): User => ({
           id: user.id,
           userKey: user.userKey || `user_${user.id}`,
+          accountKey: user.accountKey || null,
           firstName: user.firstName || "Unknown",
           lastName: user.lastName || "User",
           email: user.email,
           phoneNumber: user.phoneNumber || "N/A",
           department: user.department || "N/A",
-          status: user.status ? "active" : "pending",
+          status: user.status === true ? "active" : "pending",
           createdAt: user.createdAt ? new Date(user.createdAt).getTime() : Date.now(),
           modifiedAt: user.modifiedAt ? new Date(user.modifiedAt).getTime() : Date.now(),
         }));
-  
-        console.log("Transformed Users Data:", transformedUsers);
-  
+        
+    
         setUsers(transformedUsers);
         setFilteredUsers(transformedUsers);
         setError(null);
@@ -121,7 +104,7 @@ export default function UserTable() {
         setIsLoading(false);
       }
     };
-  
+
     fetchUsers();
   }, [accessToken]);
 
@@ -129,47 +112,40 @@ export default function UserTable() {
     if (searchTerm === "") {
       setFilteredUsers(users);
     } else {
-      const filtered = users.filter(user =>
-        `${user.firstName} ${user.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase())
+      const filtered = users.filter(
+        (user) =>
+          `${user.firstName} ${user.lastName}`
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase()) ||
+          user.email.toLowerCase().includes(searchTerm.toLowerCase())
       );
       setFilteredUsers(filtered);
     }
   }, [searchTerm, users]);
 
   const handleApprove = async (userId: number, email: string) => {
-    if (!accessToken) return;
-  
     try {
-      const response = await fetch(
-        `https://auth.tuma-app.com/api/account/approve-system-user?email=${encodeURIComponent(email)}`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-        }
+      const data = await api.post<{ status: string; message: string; accountKey: string }>(
+        "/account/approve-system-user",
+        null,
+        { params: { email } }
       );
   
-      const data = await response.json();
-      console.log("Approve API Response:", data);
-  
-      if (response.ok && data.status === "approved") {
-        setUsers(prev =>
-          prev.map(user =>
-            user.id === userId ? { ...user, status: "active" } : user
+      if (data.data.status === "approved") {
+        setUsers((prev) =>
+          prev.map((user) =>
+            user.id === userId ? { ...user, status: "active", accountKey: data.data.accountKey } : user
           )
         );
-        setFilteredUsers(prev =>
-          prev.map(user =>
-            user.id === userId ? { ...user, status: "active" } : user
+        setFilteredUsers((prev) =>
+          prev.map((user) =>
+            user.id === userId ? { ...user, status: "active", accountKey: data.data.accountKey } : user
           )
         );
-        setMessage(data.message);
+        setMessage(data.data.message);
         setMessageType("success");
       } else {
-        throw new Error(data.message || "Failed to approve user");
+        throw new Error(data.data.message || "Failed to approve user");
       }
     } catch (error: unknown) {
       console.error("Error approving user:", error);
@@ -178,6 +154,7 @@ export default function UserTable() {
       setMessageType("error");
     }
   };
+  
 
   const handleRowClick = () => {
     setIsModalOpen(true);
@@ -185,19 +162,23 @@ export default function UserTable() {
 
   const getStatusStyle = (status: UserStatus) => {
     switch (status) {
-      case "active": return "bg-green-50 text-[#037847]";
-      case "suspended": return "bg-red-50 text-[#D92D20]";
-      case "pending": return "bg-[#FDF6EC] text-[#F1B80C]";
-      default: return "";
+      case "active":
+        return "bg-green-50 text-[#037847]";
+      case "pending":
+        return "bg-[#FDF6EC] text-[#F1B80C]";
+      default:
+        return "";
     }
   };
 
   const getStatusText = (status: UserStatus) => {
     switch (status) {
-      case "active": return "Active";
-      case "suspended": return "Suspended";
-      case "pending": return "Pending";
-      default: return "";
+      case "active":
+        return "Active";
+      case "pending":
+        return "Pending";
+      default:
+        return "";
     }
   };
 
@@ -228,7 +209,7 @@ export default function UserTable() {
   }
 
   return (
-    <div className="flex h-screen relative ">
+    <div className="flex h-screen relative">
       <div className="w-1/5">
         <SideNav />
       </div>
@@ -278,22 +259,30 @@ export default function UserTable() {
               {filteredUsers.map((user, index) => {
                 const initials = getInitials(user.firstName, user.lastName);
                 const initialsColor = getInitialsColor(initials);
-                
+
                 return (
-                  <tr 
-                    key={user.id} 
+                  <tr
+                    key={user.id}
                     onClick={handleRowClick}
                     className="hover:bg-gray-50 cursor-pointer"
                   >
                     <td className="py-4 px-3 text-[#808A92]">{index + 1}</td>
                     <td className="py-2 px-3">
                       <div className="flex items-center">
-                        <div className={`h-10 w-10 rounded-full flex items-center justify-center mr-3 ${initialsColor.split(' ')[0]}`}>
-                          <span className={`font-semibold ${initialsColor.split(' ')[1]}`}>
+                        <div
+                          className={`h-10 w-10 rounded-full flex items-center justify-center mr-3 ${
+                            initialsColor.split(" ")[0]
+                          }`}
+                        >
+                          <span
+                            className={`font-semibold ${initialsColor.split(" ")[1]}`}
+                          >
                             {initials}
                           </span>
                         </div>
-                        <span>{user.firstName} {user.lastName}</span>
+                        <span>
+                          {user.firstName} {user.lastName}
+                        </span>
                       </div>
                     </td>
                     <td className="py-4 px-3 text-[#808A92] font-[400]">
@@ -304,12 +293,16 @@ export default function UserTable() {
                     </td>
                     <td className="py-4 px-3">{user.department}</td>
                     <td className="py-4 px-3">
-                      <span className={`px-2 py-1 rounded-full text-xs ${getStatusStyle(user.status)}`}>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs ${getStatusStyle(
+                          user.status
+                        )}`}
+                      >
                         {getStatusText(user.status)}
                       </span>
                     </td>
                     <td className="py-4 px-3">
-                      {user.status === "pending" ? (
+                      {user.accountKey === null ? (
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -334,9 +327,9 @@ export default function UserTable() {
         </div>
       </div>
 
-      <AssignRoleModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+      <AssignRoleModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
       />
     </div>
   );

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSelector } from 'react-redux'; // Import useSelector
+import api from '../../../utils/apiService';
 
 export default function AuditTrail() {
   const [records, setRecords] = useState([]);
@@ -8,47 +8,21 @@ export default function AuditTrail() {
   const [currentPage, setCurrentPage] = useState(1);
   const recordsPerPage = 15;
 
-  // Get the access token from Redux store
-  const accessToken = useSelector(state => state.auth.accessToken);
-
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Prepare headers with authorization if token exists
-        const headers = {
-          'Content-Type': 'application/json'
-        };
-
-        if (accessToken) {
-          headers['Authorization'] = `Bearer ${accessToken}`;
-          // Log the token being sent
-        //  console.log('Authorization Token being sent:', accessToken);
-        } else {
-          console.log('No access token available');
-        }
-
-        const response = await fetch(
-          'https://tuma-dev-backend-alb-1553448571.us-east-1.elb.amazonaws.com/api/treasury/currency-exchange-history?page=0&size=20',
-          {
-            headers
-          }
-        );
-
-        if (!response.ok) {
-          console.error('Failed API response:', response);
-          throw new Error(`Network response was not ok: ${response.status}`);
-        }
-
-        const data = await response.json();
+        const response = await api.get('/treasury/currency-exchange-history?page=0&size=20');
         
-        // Transform and sort the API data
-        const transformedData = data.map(item => {
+     
+        const responseData = response.data || response; 
+        
+        const transformedData = responseData.map(item => {
           const dateOfEffectObj = new Date(item.dateOfEffect);
           const createdAtObj = new Date(item.createdAt);
-
+  
           dateOfEffectObj.setHours(dateOfEffectObj.getHours() + 3);
           createdAtObj.setHours(createdAtObj.getHours() + 3);
-
+  
           const formatTime24h = (date) => {
             return date.toLocaleTimeString('en-US', {
               hour: '2-digit',
@@ -57,13 +31,12 @@ export default function AuditTrail() {
               hour12: false
             });
           };
-
+  
           const timeOfEffectString = formatTime24h(dateOfEffectObj);
           const dateOfEffectString = dateOfEffectObj.toISOString().split('T')[0];
-
           const createdDateString = createdAtObj.toISOString().split('T')[0];
           const createdTimeString = formatTime24h(createdAtObj);
-
+  
           const channelRecords = [
             {
               id: item.id + '_mpesa',
@@ -104,12 +77,12 @@ export default function AuditTrail() {
               timestamp: dateOfEffectObj.getTime()
             }
           ];
-
+  
           return channelRecords;
         }).flat();
-
+  
         transformedData.sort((a, b) => b.timestamp - a.timestamp);
-
+  
         setRecords(transformedData);
         setLoading(false);
       } catch (error) {
@@ -118,9 +91,10 @@ export default function AuditTrail() {
         setLoading(false);
       }
     };
-
+  
     fetchData();
-  }, [accessToken]); // Add accessToken to dependency array
+  }, );
+  
 
   const totalPages = Math.ceil(records.length / recordsPerPage);
   const paginate = (pageNumber) => {

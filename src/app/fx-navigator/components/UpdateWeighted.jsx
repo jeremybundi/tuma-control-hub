@@ -1,75 +1,101 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from 'next/image';
 import closeIcon from '../../../../public/fx/images/close.png';
 import UpdateMarkup from './UpdateMarkup';
+import api from '../../../utils/apiService';
 
 const UpdateWeighted = ({ 
   isOpen, 
   onClose, 
   apiResponse,
-  baseCurrency,  // Add this prop
-  targetCurrency // Add this prop
-}) => {  const [editingWeightedAvg, setEditingWeightedAvg] = useState(false);
+  baseCurrency,
+  targetCurrency
+}) => {
+  const [editingWeightedAvg, setEditingWeightedAvg] = useState(false);
   const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showMarkupModal, setShowMarkupModal] = useState(false);
   const [markupApiResponse, setMarkupApiResponse] = useState(null);
 
-  if (!isOpen || !apiResponse) return null;
-
-  // Initialize data only once when component mounts or apiResponse changes
-  if (data.length === 0) {
-    const initialData = [
-      { 
-        paymentRecords: "Paybill", 
-        icon: "/fx/svgs/paybill.svg", 
-        tumaRate: parseFloat(apiResponse.paybillRateTemp || 0).toFixed(2),
-        weightedAvg: parseFloat(apiResponse.paybillWeightedAvg || 0).toFixed(0),
-      },
-      { 
-        paymentRecords: "MPESA", 
-        icon: "/fx/svgs/mpesa.svg", 
-        tumaRate: parseFloat(apiResponse.mpesaRateTemp || 0).toFixed(2),
-        weightedAvg: parseFloat(apiResponse.mpesaWeightedAvg || 0).toFixed(0),
-      },
-      { 
-        paymentRecords: "Bank", 
-        icon: "/fx/svgs/Bank.svg", 
-        tumaRate: parseFloat(apiResponse.bankRateTemp || 0).toFixed(2),
-        weightedAvg: parseFloat(apiResponse.bankWeightedAvg || 0).toFixed(0),
-      }
-    ];
-    setData(initialData);
-  }
+  useEffect(() => {
+    if (isOpen && apiResponse) {
+      const initialData = [
+        { 
+          paymentRecords: "Paybill", 
+          icon: "/fx/svgs/paybill.svg", 
+          tumaRate: parseFloat(apiResponse.paybillRateTemp || 0).toFixed(2),
+          weightedAvg: parseFloat(apiResponse.paybillWeightedAvg || 0).toFixed(2), // Changed to show as decimal
+        },
+        { 
+          paymentRecords: "MPESA", 
+          icon: "/fx/svgs/mpesa.svg", 
+          tumaRate: parseFloat(apiResponse.mpesaRateTemp || 0).toFixed(2),
+          weightedAvg: parseFloat(apiResponse.mpesaWeightedAvg || 0).toFixed(2),
+        },
+        { 
+          paymentRecords: "Bank", 
+          icon: "/fx/svgs/Bank.svg", 
+          tumaRate: parseFloat(apiResponse.bankRateTemp || 0).toFixed(2),
+          weightedAvg: parseFloat(apiResponse.bankWeightedAvg || 0).toFixed(2),
+        }
+      ];
+      setData(initialData);
+    }
+  }, [isOpen, apiResponse]);
 
   const handleWeightedAvgChange = (index, value) => {
-    const newData = [...data];
-    newData[index].weightedAvg = value;
-    setData(newData);
+    // Allow empty string or decimal input
+    if (value === "" || value === ".") {
+      const newData = [...data];
+      newData[index].weightedAvg = value;
+      setData(newData);
+      return;
+    }
+
+    // Check if the value is a valid number format
+    if (/^(\d+)?([.]?\d{0,4})?$/.test(value)) {
+      const newData = [...data];
+      newData[index].weightedAvg = value;
+      setData(newData);
+    }
   };
 
   const updateWeightedAverages = async () => {
     setIsLoading(true);
     try {
-      const paybillWeightedAverage = data.find(item => item.paymentRecords === "Paybill").weightedAvg;
-      const mpesaWeightedAverage = data.find(item => item.paymentRecords === "MPESA").weightedAvg;
-      const bankWeightedAverage = data.find(item => item.paymentRecords === "Bank").weightedAvg;
-
-      const response = await fetch(
-        `https://tuma-dev-backend-alb-1553448571.us-east-1.elb.amazonaws.com/api/treasury/apply-transaction-fees?baseCurrency=${baseCurrency.code}&targetCurrency=${targetCurrency.code}&mpesaWeightedAverage=${mpesaWeightedAverage}&paybillWeightedAverage=${paybillWeightedAverage}&bankWeightedAverage=${bankWeightedAverage}`,        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        }
+      // Validate all fields have valid numbers
+      const hasInvalidValues = data.some(item => 
+        isNaN(parseFloat(item.weightedAvg)) || item.weightedAvg === ""
       );
+      
+      if (hasInvalidValues) {
+        throw new Error('Please enter valid numbers for all weighted averages');
+      }
 
-      const result = await response.json();
-      setMarkupApiResponse(result);
-      setShowMarkupModal(true);
-      setEditingWeightedAvg(false);
+      const paybillWeightedAverage = parseFloat(data.find(item => item.paymentRecords === "Paybill").weightedAvg);
+      const mpesaWeightedAverage = parseFloat(data.find(item => item.paymentRecords === "MPESA").weightedAvg);
+      const bankWeightedAverage = parseFloat(data.find(item => item.paymentRecords === "Bank").weightedAvg);
+
+      const response = await api.put('/treasury/apply-transaction-fees', null, {
+        params: {
+          baseCurrency: baseCurrency.code,
+          targetCurrency: targetCurrency.code,
+          mpesaWeightedAverage: mpesaWeightedAverage,
+          paybillWeightedAverage: paybillWeightedAverage,
+          bankWeightedAverage: bankWeightedAverage
+        }
+      });
+
+      if (response.data && response.data.data) {
+        setMarkupApiResponse(response.data);
+        setShowMarkupModal(true);
+        setEditingWeightedAvg(false);
+      } else {
+        throw new Error('Invalid response structure');
+      }
     } catch (error) {
       console.error('Error updating weighted averages:', error);
+      alert(`Error: ${error.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -89,7 +115,7 @@ const UpdateWeighted = ({
               <h2 className="text-xl font-bold mb-4">Update Weighted Averages</h2>
             </span>
             <button className="absolute top-3 right-3" onClick={onClose}>
-              <Image src={closeIcon} alt="Close Modal" width={40} height={35} />
+              <Image src={closeIcon} alt="Close Modal" width={25} height={35} />
             </button>
           </div>
 
@@ -121,15 +147,26 @@ const UpdateWeighted = ({
                     <td className="p-3">
                       {editingWeightedAvg ? (
                         <input
-                          type="number"
-                          step="0.0001"
+                          type="text"
+                          inputMode="decimal"
                           className="block font-[600] bg-green-100 p-2 pl-2 mr-10 rounded-md w-24"
                           value={row.weightedAvg}
                           onChange={(e) => handleWeightedAvgChange(index, e.target.value)}
+                          onFocus={(e) => e.target.select()}
+                          onBlur={() => {
+                            const newData = [...data];
+                            const numValue = parseFloat(newData[index].weightedAvg);
+                            if (!isNaN(numValue)) {
+                              newData[index].weightedAvg = numValue.toFixed(2);
+                            } else {
+                              newData[index].weightedAvg = "0.00";
+                            }
+                            setData(newData);
+                          }}
                         />
                       ) : (
                         <span className="block font-[600] bg-green-100 p-2 pl-2 mr-10 rounded-md">
-                          {row.weightedAvg}
+                          {row.weightedAvg} {/* Removed the % symbol */}
                         </span>
                       )}
                     </td>
@@ -150,7 +187,32 @@ const UpdateWeighted = ({
             ) : (
               <>
                 <button
-                  onClick={() => setEditingWeightedAvg(false)}
+                  onClick={() => {
+                    if (isOpen && apiResponse) {
+                      const initialData = [
+                        { 
+                          paymentRecords: "Paybill", 
+                          icon: "/fx/svgs/paybill.svg", 
+                          tumaRate: parseFloat(apiResponse.paybillRateTemp || 0).toFixed(2),
+                          weightedAvg: parseFloat(apiResponse.paybillWeightedAvg || 0).toFixed(2),
+                        },
+                        { 
+                          paymentRecords: "MPESA", 
+                          icon: "/fx/svgs/mpesa.svg", 
+                          tumaRate: parseFloat(apiResponse.mpesaRateTemp || 0).toFixed(2),
+                          weightedAvg: parseFloat(apiResponse.mpesaWeightedAvg || 0).toFixed(2),
+                        },
+                        { 
+                          paymentRecords: "Bank", 
+                          icon: "/fx/svgs/Bank.svg", 
+                          tumaRate: parseFloat(apiResponse.bankRateTemp || 0).toFixed(2),
+                          weightedAvg: parseFloat(apiResponse.bankWeightedAvg || 0).toFixed(2),
+                        }
+                      ];
+                      setData(initialData);
+                    }
+                    setEditingWeightedAvg(false);
+                  }}
                   className="px-6 py-4 text-[18px] w-full font-[600] text-white bg-gray-500 rounded-lg hover:bg-gray-600 transition-colors"
                 >
                   Cancel

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Image from 'next/image';
 import closeIcon from '../../../../public/fx/images/close.png';
-import axios from 'axios';
+import api from "../../../utils/apiService"; 
 import UpdateWeighted from './UpdateWeighted';
 
 const Update1 = ({ 
@@ -9,14 +9,13 @@ const Update1 = ({
   onClose, 
   rateValue, 
   onRateChange,
-  baseCurrency, // This should be the full currency object
-  targetCurrency, // This should be the full currency object
+  baseCurrency,
+  targetCurrency,
   getFlagUrl
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [apiResponse, setApiResponse] = useState(null);
-
 
   useEffect(() => {
     const handleEsc = (event) => {
@@ -29,8 +28,15 @@ const Update1 = ({
   const handleSetNewRate = async () => {
     setIsLoading(true);
     try {
-      const apiUrl = `https://tuma-dev-backend-alb-1553448571.us-east-1.elb.amazonaws.com/api/treasury/new-interbank-rate?baseCurrency=${baseCurrency.code}&targetCurrency=${targetCurrency.code}&interbankRate=${rateValue}&markUp=0&weightedAverage=0`;
-      const response = await axios.put(apiUrl);
+      const response = await api.put('/treasury/new-interbank-rate', null, {
+        params: {
+          baseCurrency: baseCurrency.code,
+          targetCurrency: targetCurrency.code,
+          interbankRate: rateValue,
+          markUp: 0,
+          weightedAverage: 0
+        }
+      });
 
       if (response.status === 200) {
         setApiResponse(response.data);
@@ -63,7 +69,7 @@ const Update1 = ({
             <span className="flex flex-col">
               <h2 className="text-xl font-bold mb-4">Tuma App Rates</h2>
               <p className="text-gray-500 text-[18px] mb-8 font-[500]">
-              Current Rate: 1 {baseCurrency?.code} = {rateValue} {targetCurrency?.code}
+                Current Rate: 1 {baseCurrency?.code} = {rateValue} {targetCurrency?.code}
               </p>
             </span>
 
@@ -78,14 +84,14 @@ const Update1 = ({
             <span className="border items-center flex rounded-lg px-3 py-2 max-w-[350px]">
               <h1 className="pr-4 mr-2 text-[20px] font-semibold">1</h1>
               <span className="px-2 rounded-lg flex gap-3 py-1 bg-[#F3F5F8]">
-              <Image 
-                    src={getFlagUrl(baseCurrency.country)} 
-                    alt={baseCurrency.code} 
-                    width={30} 
-                    height={16} 
-                    className="py-1 rounded-md"
-                  />
-                  <p className="ml-1 mr-2 text-[17px] font-500">{baseCurrency.code}</p>
+                <Image 
+                  src={getFlagUrl(baseCurrency.country)} 
+                  alt={baseCurrency.code} 
+                  width={30} 
+                  height={16} 
+                  className="py-1 rounded-md"
+                />
+                <p className="ml-1 mr-2 text-[17px] font-500">{baseCurrency.code}</p>
                 <Image src="/fx/svgs/arrow.svg" alt="Arrow" width={16} height={20} className="mr-1" />
               </span>
             </span>
@@ -98,15 +104,15 @@ const Update1 = ({
                 className="font-[600] text-[20px] w-[100px] pl-3 font-500 outline-none"
               />
               <span className="bg-[#F3F5F8] rounded-lg flex mx-2 px-2 py-1">
-              <Image 
+                <Image 
                   src={getFlagUrl(targetCurrency.country)} 
                   alt={targetCurrency.code} 
                   width={35} 
                   height={20} 
                   className="py-1 rounded-md"
                 />           
-               <p className="mx-5 text-[17px] font-500">{targetCurrency.code}</p>          
-      <Image src="/fx/svgs/arrow.svg" alt="Arrow" width={16} height={20} className="mr-2" />
+                <p className="mx-5 text-[17px] font-500">{targetCurrency.code}</p>          
+                <Image src="/fx/svgs/arrow.svg" alt="Arrow" width={16} height={20} className="mr-2" />
               </span>
             </span>
           </div>
@@ -146,7 +152,7 @@ const Update1 = ({
         <UpdateWeighted 
           isOpen={showSuccessModal}
           onClose={handleCloseSuccessModal}
-          apiResponse={apiResponse.data}
+          apiResponse={apiResponse.data} // Pass the data object directly
           baseCurrency={baseCurrency}
           targetCurrency={targetCurrency}
         />

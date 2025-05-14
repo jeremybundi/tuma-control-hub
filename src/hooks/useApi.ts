@@ -1,15 +1,6 @@
 // hooks/useApi.ts
 import api from '../utils/apiService';
-import type { AxiosRequestConfig, AxiosResponse } from 'axios';
-
-interface ApiResponse<T> {
-  data: T;
-  status: number;
-  statusText: string;
-  headers: any;
-  config: AxiosRequestConfig;
-  request?: any;
-}
+import type { AxiosRequestConfig, AxiosResponse, AxiosHeaders } from 'axios';
 
 const useApi = () => {
   const get = async <T>(
@@ -20,9 +11,9 @@ const useApi = () => {
     return response.data;
   };
 
-  const post = async <T>(
+  const post = async <T, D = unknown>(
     url: string,
-    data?: any,
+    data?: D,
     config?: AxiosRequestConfig
   ): Promise<T> => {
     const response: AxiosResponse<T> = await api.post(url, data, config);

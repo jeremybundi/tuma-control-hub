@@ -456,6 +456,8 @@ export default function AllTransactionsPage() {
     const receiptElement = document.getElementById("receipt");
     if (!receiptElement) return;
 
+    let hiddenContainer: HTMLDivElement | null = null; // Declare here
+
     try {
       const clonedReceipt = receiptElement.cloneNode(true) as HTMLElement;
       clonedReceipt.style.opacity = "1";
@@ -467,14 +469,12 @@ export default function AllTransactionsPage() {
       clonedReceipt.style.margin = "auto";
       clonedReceipt.style.background = "white";
 
-      const hiddenContainer = document.createElement("div");
+      hiddenContainer = document.createElement("div"); // Assign here
       hiddenContainer.style.position = "fixed";
       hiddenContainer.style.top = "-9999px"; // Keep it off-screen
       hiddenContainer.style.left = "-9999px"; // Keep it off-screen
       hiddenContainer.style.width = "auto"; // Let content define width
       hiddenContainer.style.height = "auto"; // Let content define height
-      // hiddenContainer.style.display = "flex"; // Not needed if positioning off-screen
-      // hiddenContainer.style.justifyContent = "center"; // Not needed
       hiddenContainer.appendChild(clonedReceipt);
       document.body.appendChild(hiddenContainer);
 
@@ -486,21 +486,18 @@ export default function AllTransactionsPage() {
       });
 
       const pdf = new jsPDF("p", "mm", "a4");
-      const pdfWidth = pdf.internal.pageSize.getWidth(); // 210 for A4
-      const pdfHeight = pdf.internal.pageSize.getHeight(); // 297 for A4
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
       
       const canvasWidth = canvas.width;
       const canvasHeight = canvas.height;
 
-      // Calculate the aspect ratio
       const canvasAspectRatio = canvasWidth / canvasHeight;
       
-      // Define margins (e.g., 10mm)
       const margin = 10; 
       let imgWidth = pdfWidth - 2 * margin;
       let imgHeight = imgWidth / canvasAspectRatio;
 
-      // If image height exceeds page height with margins, scale by height instead
       if (imgHeight > pdfHeight - 2 * margin) {
         imgHeight = pdfHeight - 2 * margin;
         imgWidth = imgHeight * canvasAspectRatio;
@@ -508,7 +505,6 @@ export default function AllTransactionsPage() {
       
       const xOffset = (pdfWidth - imgWidth) / 2;
       const yOffset = (pdfHeight - imgHeight) / 2;
-
 
       pdf.addImage(
         canvas.toDataURL("image/png"),
@@ -521,9 +517,10 @@ export default function AllTransactionsPage() {
       pdf.save(`Receipt_${selectedTransaction.transactionId}.pdf`);
 
       document.body.removeChild(hiddenContainer);
+      hiddenContainer = null; // Set to null after successful removal
     } catch (error) {
       console.error("Error generating PDF:", error);
-       if (document.body.contains(hiddenContainer)) { // Check if container exists before removing
+       if (hiddenContainer && document.body.contains(hiddenContainer)) { // Check if hiddenContainer exists and is in the DOM
          document.body.removeChild(hiddenContainer);
        }
     }

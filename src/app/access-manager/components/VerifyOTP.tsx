@@ -280,7 +280,7 @@ const VerifyOTPContent = () => {
 
           <p className="mt-6 text-center text-gray-500 text-lg">
             {/* 5. Escape apostrophe */}
-            Don't receive the code?
+            Don&apos;t receive the code?
             <button
               onClick={handleResendOTP}
               disabled={resendDisabled || isLoading} // Also disable if main form is loading

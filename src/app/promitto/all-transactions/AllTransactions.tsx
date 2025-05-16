@@ -175,7 +175,7 @@ export default function AllTransactionsPage() {
           `/transfer/partner-transactions?page=${currentPage}&size=${rowsPerPage}`
         );
         const transactionsData = Array.isArray(data) ? data : data.content || [];
-        const total = data.totalElements || data.length || 0;
+        //const total = data.totalElements || data.length || 0;
 
 
         const mappedTransactions = transactionsData.map((item: ApiTransactionResponse) => ({

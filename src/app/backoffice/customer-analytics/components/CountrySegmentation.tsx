@@ -1,13 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
+import { Button } from "../../../../components/ui/button";
 import { ChevronDown } from "lucide-react";
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
-} from "@/components/ui/popover";
+} from "../../../../components/ui/popover";
 
 const countries = [
   {

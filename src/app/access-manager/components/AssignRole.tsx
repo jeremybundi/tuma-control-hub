@@ -5,7 +5,7 @@ import { IoCloseCircleOutline } from "react-icons/io5";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
 import { IoIosArrowDown } from "react-icons/io";
-import auth from "@/hooks/Auth";
+import auth from "../../../hooks/Auth";
 
 interface Role {
   roleKey: string;

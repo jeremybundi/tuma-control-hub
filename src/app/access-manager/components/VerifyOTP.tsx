@@ -1,20 +1,34 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, Suspense, useEffect } from "react"; // Added useEffect
 import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { jwtDecode } from "jwt-decode";
-import useAuth from "../../../hooks/Auth"; 
+import useAuth from "../../../hooks/Auth"; // Assuming path is correct
 
 interface DecodedToken {
   exp: number;
-  [key: string]: unknown;
+  // For example: userId?: string; roles?: string[];
+  [key: string]: unknown; // Allows for other dynamic properties
 }
 
 interface OtpVerificationResponse {
   accessToken: string;
   refreshToken: string;
+  // Add any other properties returned by the /auth/email endpoint on success
 }
+
+// If the response body isn't used, `unknown` or `void` is fine.
+interface ResendOtpResponse {
+  message?: string; // Example: "OTP sent successfully"
+  // other potential success fields
+}
+
+// Interface for API error responses (consistent with Login.tsx)
+interface ApiErrorResponse {
+  message: string;
+}
+
 
 const VerifyOTPContent = () => {
   const searchParams = useSearchParams();
@@ -27,15 +41,30 @@ const VerifyOTPContent = () => {
   const [error, setError] = useState("");
   const [resendDisabled, setResendDisabled] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [resendTimer, setResendTimer] = useState(0); // For resend countdown
+
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+    if (resendDisabled && resendTimer > 0) {
+      intervalId = setInterval(() => {
+        setResendTimer((prevTimer) => prevTimer - 1);
+      }, 1000);
+    } else if (resendTimer === 0 && resendDisabled) {
+      setResendDisabled(false); // Re-enable button when timer hits 0
+    }
+    return () => clearInterval(intervalId);
+  }, [resendDisabled, resendTimer]);
+
 
   const handleChange = (index: number, value: string) => {
-    if (!/^\d?$/.test(value)) return;
+    if (!/^\d?$/.test(value)) return; // Allow only single digits or empty string
 
     const newOtp = [...otp];
     newOtp[index] = value;
     setOtp(newOtp);
 
-    if (value && index < 5) {
+    // Move focus to the next input if a value is entered and it's not the last input
+    if (value && index < otp.length - 1) {
       document.getElementById(`otp-${index + 1}`)?.focus();
     }
   };
@@ -44,11 +73,18 @@ const VerifyOTPContent = () => {
     index: number,
     event: React.KeyboardEvent<HTMLInputElement>
   ) => {
-    if (event.key === "Backspace" && !otp[index] && index > 0) {
-      document.getElementById(`otp-${index - 1}`)?.focus();
+    if (event.key === "Backspace") {
       const newOtp = [...otp];
-      newOtp[index - 1] = "";
-      setOtp(newOtp);
+      if (otp[index]) {
+        // If current input has value, clear it
+        newOtp[index] = "";
+        setOtp(newOtp);
+      } else if (index > 0) {
+        // If current input is empty and not the first, focus previous and clear it
+        document.getElementById(`otp-${index - 1}`)?.focus();
+        newOtp[index - 1] = ""; // Optionally clear previous on backspace to it
+        setOtp(newOtp);
+      }
     }
   };
 
@@ -65,7 +101,7 @@ const VerifyOTPContent = () => {
     }
 
     try {
-      const responseData = await post<OtpVerificationResponse>(
+      const responseData = await post<OtpVerificationResponse>( // Type for successful response
         "/auth/email",
         {
           email: email,
@@ -75,35 +111,44 @@ const VerifyOTPContent = () => {
 
       if (responseData && responseData.accessToken) {
         const decodedToken = jwtDecode<DecodedToken>(responseData.accessToken);
-        const tokenExpiry = decodedToken.exp * 1000;
+        const tokenExpiryTimestamp = decodedToken.exp * 1000; // 1. Use the tokenExpiryTimestamp
 
-      /*  console.log("Authentication successful. Tokens received:", {
+        console.log("Authentication successful. Tokens received:", {
           accessToken: responseData.accessToken,
           refreshToken: responseData.refreshToken,
-          tokenExpiry: new Date(tokenExpiry),
-        }); */
+          tokenExpiry: new Date(tokenExpiryTimestamp), // Log or use this
+        });
         
         // TODO: Implement token storage (e.g., localStorage, Context API)
-        // localStorage.setItem('accessToken', responseData.accessToken);
-        // localStorage.setItem('refreshToken', responseData.refreshToken);
-        // localStorage.setItem('tokenExpiry', tokenExpiry.toString());
+        // This is where you would use tokenExpiryTimestamp
+        localStorage.setItem('accessToken', responseData.accessToken);
+        localStorage.setItem('refreshToken', responseData.refreshToken);
+        localStorage.setItem('tokenExpiry', tokenExpiryTimestamp.toString());
 
-        setError("");
-        router.push("/dashboard");
+        setError(""); // Clear any previous errors on success
+        router.push("/dashboard"); // Navigate to dashboard
       } else {
-        setError("Invalid OTP or unexpected response. Please try again.");
-        setOtp(["", "", "", "", "", ""]);
+        // This case might indicate an API design where success doesn't always include tokens,
+        // or a partial success. Adjust error message as needed.
+        setError("OTP verified, but token data is missing. Please contact support.");
+        setOtp(["", "", "", "", "", ""]); // Clear OTP fields
         if (typeof document !== "undefined") document.getElementById("otp-0")?.focus();
       }
-    } catch (err: any) {
+    } catch (err: unknown) { // 2. Type error as unknown
       let errorMessage = "Invalid OTP. Please try again.";
-      if (err.response && err.response.data && err.response.data.message) {
-        errorMessage = err.response.data.message;
-      } else if (err.message) {
-        errorMessage = err.message;
+      // Type guard to safely access properties of the error object
+      if (typeof err === 'object' && err !== null) {
+        if ('response' in err) {
+          const errorResponse = (err as { response?: { data?: unknown } }).response;
+          if (errorResponse && typeof errorResponse.data === 'object' && errorResponse.data !== null && 'message' in errorResponse.data) {
+            errorMessage = (errorResponse.data as ApiErrorResponse).message;
+          }
+        } else if ('message' in err && typeof (err as { message: unknown }).message === 'string') {
+          errorMessage = (err as { message: string }).message;
+        }
       }
       setError(errorMessage);
-      setOtp(["", "", "", "", "", ""]);
+      setOtp(["", "", "", "", "", ""]); // Clear OTP fields on error
       if (typeof document !== "undefined") document.getElementById("otp-0")?.focus();
     } finally {
       setIsLoading(false);
@@ -112,21 +157,39 @@ const VerifyOTPContent = () => {
 
   const handleResendOTP = async () => {
     setResendDisabled(true);
-    setError("");
+    setResendTimer(30); // Start 30-second countdown
+    setError(""); // Clear previous errors
+    setIsLoading(true); // Indicate loading state for resend
+
     try {
-      await post<any>(`/send-otp/${encodeURIComponent(email)}`);
+      // 3. Use a specific type for post or `unknown` if response body isn't used
+      await post<ResendOtpResponse>(`/auth/send-otp/${encodeURIComponent(email)}`);
+      // Assuming the API path is `/auth/send-otp/{email}` like in Login.tsx.
+      // If it's just `/send-otp/...` relative to a base URL in useAuth, adjust accordingly.
+      
       if (typeof alert !== "undefined") alert("A new OTP has been sent to your email.");
-    } catch (err: any) {
+    } catch (err: unknown) { // 4. Type error as unknown
       let alertMessage = "Failed to resend OTP. Please try again.";
-      if (err.response && err.response.data && err.response.data.message) {
-        alertMessage = err.response.data.message;
+       // Type guard for error message
+      if (typeof err === 'object' && err !== null) {
+        if ('response' in err) {
+          const errorResponse = (err as { response?: { data?: unknown } }).response;
+          if (errorResponse && typeof errorResponse.data === 'object' && errorResponse.data !== null && 'message' in errorResponse.data) {
+            alertMessage = (errorResponse.data as ApiErrorResponse).message;
+          }
+        } else if ('message' in err && typeof (err as { message: unknown }).message === 'string') {
+          alertMessage = (err as { message: string }).message;
+        }
       }
       if (typeof alert !== "undefined") alert(alertMessage);
       console.error("Resend OTP error:", err);
+      // Don't reset timer here, let useEffect handle re-enabling after full duration
+      setResendDisabled(false); // Allow retrying immediately if API call failed.
+      setResendTimer(0); // Reset timer as the attempt failed.
     } finally {
-      setTimeout(() => {
-        setResendDisabled(false);
-      }, 30000);
+      setIsLoading(false); // Stop loading state for resend
+      // The useEffect will handle re-enabling the button after the timer.
+      // If the API call itself failed, we've already re-enabled it above.
     }
   };
 
@@ -140,7 +203,7 @@ const VerifyOTPContent = () => {
             width={500}
             height={500}
             className="h-screen w-full object-cover"
-            priority
+            priority // Good for LCP elements
           />
         </div>
 
@@ -163,13 +226,14 @@ const VerifyOTPContent = () => {
             Enter the verification code we just sent to <br />
             <span className="font-medium text-gray-900 flex items-center">
               {email}
-              <Image
+              {/* Consider if this "edit" functionality is needed or if it should link back */}
+              {/* <Image
                 src="/user-access/images/pen.png"
                 alt="Edit"
                 width={16}
                 height={16}
                 className="ml-2 inline-block align-middle"
-              />
+              /> */}
             </span>
           </p>
 
@@ -183,17 +247,20 @@ const VerifyOTPContent = () => {
 
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div className="flex justify-between">
-              {[...Array(6)].map((_, index) => (
+              {otp.map((digit, index) => ( // Changed from [...Array(6)] to iterate over otp state directly
                 <input
                   key={index}
                   id={`otp-${index}`}
-                  type="text"
+                  type="text" // "text" is fine, "tel" can also be used for numeric input
+                  inputMode="numeric" // Helps mobile users get numeric keyboard
+                  pattern="\d{1}" // HTML5 validation for a single digit
                   maxLength={1}
-                  className="w-16 h-16 border text-xl text-center border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  value={otp[index] || ""}
+                  className="w-14 h-14 sm:w-16 sm:h-16 border text-xl text-center border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  value={digit} // Use digit from otp state
                   onChange={(e) => handleChange(index, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(index, e)}
-                  autoComplete="off"
+                  autoComplete="one-time-code" // Helps with autofill from SMS
+                  required // Makes individual fields required by browser
                 />
               ))}
             </div>
@@ -212,13 +279,14 @@ const VerifyOTPContent = () => {
           </form>
 
           <p className="mt-6 text-center text-gray-500 text-lg">
+            {/* 5. Escape apostrophe */}
             Don't receive the code?
             <button
               onClick={handleResendOTP}
-              disabled={resendDisabled}
+              disabled={resendDisabled || isLoading} // Also disable if main form is loading
               className="ml-2 text-blue-600 font-semibold hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Resend
+              {resendDisabled && resendTimer > 0 ? `Resend in ${resendTimer}s` : "Resend"}
             </button>
           </p>
         </div>
@@ -229,10 +297,11 @@ const VerifyOTPContent = () => {
 
 const VerifyOTP = () => {
   return (
+    // Suspense is good practice for components relying on useSearchParams
     <Suspense
       fallback={
-        <div className="flex justify-center items-center h-screen">
-          Loading...
+        <div className="flex justify-center items-center h-screen text-gray-700">
+          Loading Verification...
         </div>
       }
     >

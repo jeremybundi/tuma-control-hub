@@ -4,7 +4,23 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import useAuth from "../../../hooks/Auth"; 
+import useAuth from "../../../hooks/Auth"; // Assuming this path is correct
+
+// Define an interface for the expected error structure if it's consistent
+// This is helpful for type-safe access to error.response.data.message
+interface ApiErrorResponse {
+  message: string;
+  // other potential error fields
+}
+
+// Define an interface for the expected success response from send-otp, if any.
+// If the response body isn't used, `unknown` or `void` is fine.
+// For this example, let's assume it might return a message.
+interface SendOtpSuccessResponse {
+  message?: string; // Example: "OTP sent successfully"
+  // other potential success fields
+}
+
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -12,7 +28,7 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
-  const { post } = useAuth();
+  const { post } = useAuth(); // Assuming useAuth provides a post method similar to useApi
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,19 +37,38 @@ const Login = () => {
     setNotification("");
 
     try {
-      await post<any>(
+      // 1. Add a more specific type for the post request's expected response.
+      // If the response body is not used, `unknown` is a safe default.
+      // If you expect a specific structure, define an interface for it.
+      await post<SendOtpSuccessResponse>( // Or use `post<unknown>(...)` if response body isn't used
         `/auth/send-otp/${encodeURIComponent(email)}`
+        // No body is being sent for this POST request, which is unusual for POST.
+        // Typically, a POST request sends data in the body.
+        // If this endpoint indeed expects an empty body, this is fine.
+        // If it expects data, it should be the second argument: `post<SendOtpSuccessResponse>(url, dataPayload)`
       );
   
       setNotification("An OTP has been sent to your email. Please verify.");
       router.push(`/verify-otp?email=${encodeURIComponent(email)}`);
 
-    } catch (err: any) {
-      setError("Failed to send OTP. Please try again.");
+    } catch (err: unknown) { // 2. Type the error as `unknown` for better type safety
+      let errorMessage = "Failed to send OTP. Please try again.";
       console.error("OTP sending error:", err);
-      if (err.response && err.response.data && err.response.data.message) {
-        setError(err.response.data.message);
+
+      // Type guard to safely access properties of the error object
+      if (typeof err === 'object' && err !== null) {
+        if ('response' in err) {
+          const errorResponse = (err as { response?: { data?: unknown } }).response;
+          if (errorResponse && typeof errorResponse.data === 'object' && errorResponse.data !== null && 'message' in errorResponse.data) {
+            // Assuming errorResponse.data has a message property of type string
+            errorMessage = (errorResponse.data as ApiErrorResponse).message;
+          }
+        } else if ('message' in err && typeof (err as { message: unknown }).message === 'string') {
+          // Fallback to generic error message if no response structure
+          errorMessage = (err as { message: string }).message;
+        }
       }
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -60,7 +95,8 @@ const Login = () => {
           </h2>
           <h1 className="text-2xl text-gray-800 font-semibold mb-8">Login to your account</h1>
           <p className="text-gray-400 font-medium text-lg mb-6">
-          Don't have an account?{" "}
+            {/* 3. Escape the apostrophe */}
+            Don't have an account?{" "}
             <Link href="/" className="text-blue-600 underline">
               Request for Access
             </Link>

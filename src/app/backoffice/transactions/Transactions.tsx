@@ -125,7 +125,7 @@ const TransactionsPage = () => {
             receiverPhone: tx.receiverPhone || "N/A",
             senderPhone: tx.senderPhone || "N/A",
             transactionKey: tx.transactionKey || "N/A",
-            accountNumber: tx.accountNumber || "N/A", // This now matches the interface
+            accountNumber: Number(tx.accountNumber) || 0, 
             settlementReference: tx.settlementReference || "N/A",
             recipientAmount: tx.recipientAmount || 0,
             senderEmail: tx.senderEmail || "N/A",

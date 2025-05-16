@@ -208,12 +208,12 @@ export default function AllTransactionsPage() {
               : item.status === "ESCALATED"
               ? "Escalated"
               : "Failed",
-          currencyIso3a: item.currencyIso3a || "N/A",
-          receiverCurrencyIso3a: item.receiverCurrencyIso3a || "N/A",
-          transactionType: formatChannelName(item.transactionType) || "Unknown",
-          accountNumber: item.accountNumber || "N/A",
-          settlementReference: item.settlementReference || "N/A",
-          tpReference: item.tpReference || "N/A",
+              currencyIso3a: item.currencyIso3a || "N/A",
+              receiverCurrencyIso3a: item.receiverCurrencyIso3a || "N/A",
+              transactionType: formatChannelName(item.transactionType || "Unknown"),
+              accountNumber: item.accountNumber || "N/A",
+              settlementReference: item.settlementReference || "N/A",
+              tpReference: item.tpReference || "N/A",
           mpesaReference: item.mpesaReference || null,
           rawDate: item.date ? new Date(item.date) : new Date(),
           errorMessage: item.errorMessage || "N/A",

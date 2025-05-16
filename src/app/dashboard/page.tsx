@@ -4,14 +4,10 @@ import React from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useSelector } from "react-redux";
-import { RootState } from "../../../store/store";
+import { RootState } from "../../store/store";
+import User from "../access-manager/components/User"; // Import the User component
 
-interface DashboardModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-const DashboardModal: React.FC<DashboardModalProps> = ({ isOpen, onClose }) => {
+const DashboardPage = () => {
   const router = useRouter();
   const user = useSelector((state: RootState) => state.auth.user);
 
@@ -24,37 +20,37 @@ const DashboardModal: React.FC<DashboardModalProps> = ({ isOpen, onClose }) => {
   const allModules = [
     { 
       name: "Omnisupport", 
-      image: "/images/Tuma_Omnisupport.png", 
+      image: "/user-access/images/omni.png", 
       path: "https://tuma-omnisupport.vercel.app/",
       roles: ["ADMIN", "OMNISUPPORT"] 
     },
     { 
       name: "FX Navigator", 
-      image: "/images/Tuma_Fx_Navigator.png", 
+      image: "/user-access/images/Tuma_Fx_Navigator.png", 
       path: "/fx-navigator",
       roles: ["ADMIN", "TREASURY"] 
     },
     { 
       name: "Campaign Manager", 
-      image: "/images/Tuma_Campaign_Manager.png", 
+      image: "/user-access/images/Tuma_Campaign_Manager.png", 
       path: "/campaign-manager",
       roles: ["ADMIN"] 
     },
     { 
       name: "Back Office Suite", 
-      image: "/images/Tuma_Back_Office.png", 
-      path: "https://tuma-backoffice-wsis.vercel.app/",
+      image: "/user-access/images/Tuma_Back_Office.png", 
+      path: "/backoffice/dashboard/",
       roles: ["ADMIN"] 
     },
     { 
       name: "Merchant Portal", 
-      image: "/images/Tuma_Merchant_Portal.png", 
-      path: "https://promitto-backoffice.vercel.app/",
+      image: "/user-access/images/Tuma_Merchant_Portal.png", 
+      path: "/promitto/dashboard",
       roles: ["ADMIN", "MERCHANT"] 
     },
     { 
       name: "Access Manager", 
-      image: "/images/Tuma_Access_Manager.png", 
+      image: "/user-access/images/Tuma_Access_Manager.png", 
       path: "/access-manager",
       roles: ["ADMIN"] 
     },
@@ -77,8 +73,6 @@ const DashboardModal: React.FC<DashboardModalProps> = ({ isOpen, onClose }) => {
     return hasAccess;
   });
 
-  if (!isOpen) return null;
-
   const handleModuleClick = (path: string, moduleName: string) => {
     console.log(`Navigating to ${moduleName} with roles:`, user?.roles);
     
@@ -92,12 +86,13 @@ const DashboardModal: React.FC<DashboardModalProps> = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-opacity-45 backdrop-blur-xl z-50">
-      <div className="relative bg-white px-6 py-16 rounded-2xl shadow-lg w-6xl h-[750px] text-center">
-        {/* Close Button (Top Right) */}
-        <button onClick={onClose} className="absolute top-5 right-5">
-          <Image src="/images/close.png" alt="Close" width={30} height={30} />
-        </button>
+    <div className="flex min-h-screen font-poppins items-center justify-center bg-blue-600/60 backdrop-blur-xl">
+        {/* Add User component positioned at bottom left */}
+        <div className="absolute  bottom-2 left-3">
+          <User />
+        </div>
+      <div className="relative bg-white px-6 py-14 rounded-2xl shadow-lg w-4xl h-[700px] text-center">
+      
 
         <h2 className="text-3xl font-semibold text-gray-800 mt-8 mb-12">Select a module to proceed</h2>
 
@@ -109,7 +104,7 @@ const DashboardModal: React.FC<DashboardModalProps> = ({ isOpen, onClose }) => {
               onClick={() => handleModuleClick(module.path, module.name)}
               className="flex flex-col items-center justify-center transition py-2 rounded-lg cursor-pointer hover:bg-gray-100"
             >
-              <div className="w-48 h-48 overflow-hidden rounded-full shadow-md">
+              <div className="w-36 h-36 overflow-hidden rounded-full shadow-md">
                 <Image 
                   src={module.image} 
                   alt={module.name} 
@@ -127,4 +122,4 @@ const DashboardModal: React.FC<DashboardModalProps> = ({ isOpen, onClose }) => {
   );
 };
 
-export default DashboardModal;
+export default DashboardPage;

@@ -4,12 +4,20 @@ import logo from '../../../../public/fx/images/logo.png';
 import trend from '../../../../public/fx/images/trending.png';
 import set from '../../../../public/fx/images/settings.png';
 import User from '../../access-manager/components/User';
+import { useRouter } from 'next/navigation';
 
 export default function SideNav() {
+  const router = useRouter();
+
+  const handleLogoClick = () => {
+    router.push('/dashboard'); 
+  };
   return (
     <div className="w-1/4 min-h-screen font-poppins  px-4 pt-8 bg-blue-600 text-white flex flex-col">
       <div className="flex justify-start mb-16">
-        <Image src={logo} alt="Logo" width={35} height={24} />
+        <Image src={logo} alt="Logo" width={35} height={24}         
+         onClick={handleLogoClick}
+        />
         <div className="font-semibold text-xl mt-1  ml-3">FX Navigator</div>
       </div>
 

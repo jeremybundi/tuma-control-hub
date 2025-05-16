@@ -50,6 +50,7 @@ const Login = () => {
             height={500}
             loading="lazy"
             className="h-screen w-full object-cover"
+            
           />
         </div>
 

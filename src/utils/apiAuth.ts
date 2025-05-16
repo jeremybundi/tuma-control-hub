@@ -36,7 +36,7 @@ api.interceptors.request.use(
   
       if (store) {
         const { accessToken, tokenExpiry } = store.getState()?.auth;
-        console.log('Access Token:', accessToken); 
+        //console.log('Access Token:', accessToken); 
         console.log('Token Expiry:', tokenExpiry);
         
         // Check if token exists and isn't expired

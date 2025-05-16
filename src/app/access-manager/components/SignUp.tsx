@@ -124,7 +124,7 @@ export default function ControlHub() {
         {/* Right Column: Form */}
         <div className="w-1/2 mt-16 px-24 pr-36">
           <h2 className="text-4xl font-bold text-gray-800 mb-12 flex items-center gap-4">
-            <Image src="/images/logo.png" alt="Logo" width={40} height={35} />
+            <Image src="/user-access/images/logo.png" alt="Logo" width={40} height={35} />
             Control Hub
           </h2>
           <p className="text-2xl font-semibold text-gray-800 mb-4">

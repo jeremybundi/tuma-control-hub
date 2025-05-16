@@ -6,7 +6,7 @@ import SideNav from "@/app/access-manager/components/SideNav";
 import { RootState } from "@/store/store";
 import { IoIosSearch, IoIosArrowForward } from "react-icons/io";
 import AssignRoleModal from "@/app/access-manager/components/AssignRole";
-import api from "../../../utils/apiAuth";
+import auth from "@/hooks/Auth";
 
 type UserStatus = "active" |  "pending";
 
@@ -48,6 +48,10 @@ export default function UserTable() {
   const accessToken = useSelector((state: RootState) => state.auth.accessToken);
   const [message, setMessage] = useState<string | null>(null);
   const [messageType, setMessageType] = useState<"success" | "error" | null>(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const { get, post } = auth();
+
+
 
   const getInitials = (firstName: string, lastName: string) =>
     `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
@@ -73,13 +77,14 @@ export default function UserTable() {
     return colors[index];
   };
 
+
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await api.get<ApiUser[]>("/account/system-users-requests");
+        // Use the new auth hook's get method
+        const data = await get<ApiUser[]>("/account/system-users-requests");
         
-        // The API returns the array directly, so we use response.data
-        const transformedUsers = response.data.map((user: ApiUser): User => ({
+        const transformedUsers = data.map((user: ApiUser): User => ({
           id: user.id,
           userKey: user.userKey || `user_${user.id}`,
           accountKey: user.accountKey || null,
@@ -93,7 +98,6 @@ export default function UserTable() {
           modifiedAt: user.modifiedAt ? new Date(user.modifiedAt).getTime() : Date.now(),
         }));
         
-    
         setUsers(transformedUsers);
         setFilteredUsers(transformedUsers);
         setError(null);
@@ -106,7 +110,7 @@ export default function UserTable() {
     };
 
     fetchUsers();
-  }, [accessToken]);
+  }, []);
 
   useEffect(() => {
     if (searchTerm === "") {
@@ -125,27 +129,28 @@ export default function UserTable() {
 
   const handleApprove = async (userId: number, email: string) => {
     try {
-      const data = await api.post<{ status: string; message: string; accountKey: string }>(
+      // Use the new auth hook's post method
+      const data = await post<{ status: string; message: string; accountKey: string }>(
         "/account/approve-system-user",
         null,
         { params: { email } }
       );
   
-      if (data.data.status === "approved") {
+      if (data.status === "approved") {
         setUsers((prev) =>
           prev.map((user) =>
-            user.id === userId ? { ...user, status: "active", accountKey: data.data.accountKey } : user
+            user.id === userId ? { ...user, status: "active", accountKey: data.accountKey } : user
           )
         );
         setFilteredUsers((prev) =>
           prev.map((user) =>
-            user.id === userId ? { ...user, status: "active", accountKey: data.data.accountKey } : user
+            user.id === userId ? { ...user, status: "active", accountKey: data.accountKey } : user
           )
         );
-        setMessage(data.data.message);
+        setMessage(data.message);
         setMessageType("success");
       } else {
-        throw new Error(data.data.message || "Failed to approve user");
+        throw new Error(data.message || "Failed to approve user");
       }
     } catch (error: unknown) {
       console.error("Error approving user:", error);
@@ -156,8 +161,11 @@ export default function UserTable() {
   };
   
 
-  const handleRowClick = () => {
-    setIsModalOpen(true);
+  const handleRowClick = (user: User) => {
+    if (user.accountKey) {
+      setSelectedUser(user);
+      setIsModalOpen(true);
+    }
   };
 
   const getStatusStyle = (status: UserStatus) => {
@@ -217,7 +225,7 @@ export default function UserTable() {
       <div className="w-4/5 p-8 overflow-auto">
         <div className="overflow-x-auto font-poppins">
           <div className="flex justify-between sticky items-center mb-6">
-            <h1 className="text-[18px] font-[600]">User roles & Access</h1>
+            <h1 className="text-[18px] font-[600]">User roles & access</h1>
             <div className="relative">
               <IoIosSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
@@ -262,10 +270,10 @@ export default function UserTable() {
 
                 return (
                   <tr
-                    key={user.id}
-                    onClick={handleRowClick}
-                    className="hover:bg-gray-50 cursor-pointer"
-                  >
+                  key={user.id}
+                  onClick={() => handleRowClick(user)}
+                  className={`hover:bg-gray-50 ${user.accountKey ? 'cursor-pointer' : 'cursor-default'}`}
+                >
                     <td className="py-4 px-3 text-[#808A92]">{index + 1}</td>
                     <td className="py-2 px-3">
                       <div className="flex items-center">
@@ -326,11 +334,14 @@ export default function UserTable() {
           </table>
         </div>
       </div>
-
       <AssignRoleModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      />
+  isOpen={isModalOpen}
+  onClose={() => {
+    setIsModalOpen(false);
+    setSelectedUser(null);
+  }}
+  user={selectedUser}
+/>
     </div>
   );
 }

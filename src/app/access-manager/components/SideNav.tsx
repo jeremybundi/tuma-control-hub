@@ -4,13 +4,13 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
-
+import { useRouter } from 'next/navigation';
 // Import React Icons
 import { FaChartLine, FaExchangeAlt, FaUsers, FaShieldAlt } from "react-icons/fa";
 import { FaBell, FaHeadset, FaFileAlt, FaCog } from "react-icons/fa";
 //import { FaUser } from "react-icons/fa";
 import User from './User';
-import DashboardModal from './DashboardModal';
+//import DashboardModal from '../../dashboard';
 
 
 
@@ -22,7 +22,7 @@ interface NavItem {
 
 export default function SideNav() {
   const pathname = usePathname();
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const router = useRouter();
 
 
   const navItems: NavItem[] = [
@@ -69,9 +69,8 @@ export default function SideNav() {
     },
   ];
 
-  const handleLogoClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsModalOpen(true);
+  const handleLogoClick = () => {
+    router.push('/dashboard'); 
   };
 
   return (
@@ -87,6 +86,7 @@ export default function SideNav() {
             alt="Logo" 
             width={25} 
             height={28} 
+            
           />
         </span>
         <h1 className="text-[20px] font-semibold">Admin</h1>
@@ -117,11 +117,11 @@ export default function SideNav() {
       <div className="mt-auto mb-4">
         <User />
       </div>
-        {/* Dashboard Modal */}
+        {/* Dashboard Modal 
         <DashboardModal 
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-      />
+      />  */}
     </div>
   );
 }

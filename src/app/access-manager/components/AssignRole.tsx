@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { IoCloseCircleOutline } from "react-icons/io5";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store/store";
-import axios from "axios";
 import { IoIosArrowDown } from "react-icons/io";
+import auth from "@/hooks/Auth";
 
 interface Role {
   roleKey: string;
@@ -15,45 +15,79 @@ interface Role {
 interface AssignRoleModalProps {
   isOpen: boolean;
   onClose: () => void;
+  user: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    department: string;
+    phoneNumber: string;
+    status: "active" | "pending";
+    accountKey: string | null;
+  } | null;
 }
 
-export default function AssignRoleModal({ isOpen, onClose }: AssignRoleModalProps) {
-  const accessToken = useSelector((state: RootState) => state.auth.accessToken);
+export default function AssignRoleModal({ isOpen, onClose, user }: AssignRoleModalProps) {
   const [roles, setRoles] = useState<Role[]>([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Initialize the auth hook
+  const { get, post } = auth();
 
   useEffect(() => {
     const fetchRoles = async () => {
-      if (!accessToken) return;
-
       try {
-        const response = await axios.get("https://auth.tuma-app.com/api/role/roles", {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
-        setRoles(response.data);
+        // Use the auth hook's get method
+        const data = await get<Role[]>('/role/roles');
+        setRoles(data);
       } catch (error) {
         console.error("Failed to fetch roles:", error);
+        setError("Failed to load roles");
       }
     };
 
-    if (isOpen) {
+    if (isOpen && user) {
       fetchRoles();
     }
-  }, [accessToken, isOpen]);
+  }, [isOpen, user]);
 
-  if (!isOpen) return null;
-
-  const user = {
-    firstName: "Jeremy",
-    lastName: "Mongare",
-    email: "jeremybundi4@gmail.com",
-    department: "Engineering",
-    phoneNumber: "+254712345678",
-    status: "active" as const,
+  const handleSave = async () => {
+    if (!selectedRole || !user?.accountKey) {
+      setError("Please select a role");
+      return;
+    }
+  
+    setIsSubmitting(true);
+    setError(null);
+  
+    try {
+      // Use the auth hook's post method
+      await post(
+        `/account/assign/role`,
+        null, // Empty body
+        {
+          params: {
+            accountKey: user.accountKey,
+            roleKey: selectedRole.roleKey
+          }
+        }
+      );
+      
+      onClose();
+    } catch (error: any) {
+      console.error("Error assigning role:", error);
+      const errorMessage = error.response?.data?.message 
+        || error.message 
+        || "Failed to assign role. Please try again.";
+      setError(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  if (!isOpen || !user) return null;
 
   const getInitials = (firstName: string, lastName: string) =>
     `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
@@ -103,6 +137,12 @@ export default function AssignRoleModal({ isOpen, onClose }: AssignRoleModalProp
               <IoCloseCircleOutline size={24} />
             </button>
           </div>
+
+          {error && (
+            <div className="mb-4 p-3 bg-red-100 text-red-800 rounded-md text-sm">
+              {error}
+            </div>
+          )}
 
           <div className="space-y-5 flex-1 overflow-y-auto pb-24">
             <div className="flex flex-col bg-white rounded-xl py-10 items-center">
@@ -160,11 +200,16 @@ export default function AssignRoleModal({ isOpen, onClose }: AssignRoleModalProp
               <button
                 className="w-full text-blue-500 hover:bg-blue-600 hover:text-white border border-blue-500 py-2 rounded"
                 onClick={onClose}
+                disabled={isSubmitting}
               >
                 Cancel
               </button>
-              <button className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded">
-                Save
+              <button 
+                className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded disabled:bg-blue-300"
+                onClick={handleSave}
+                disabled={isSubmitting || !selectedRole}
+              >
+                {isSubmitting ? "Saving..." : "Save"}
               </button>
             </div>
           </div>

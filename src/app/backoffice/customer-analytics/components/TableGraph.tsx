@@ -73,7 +73,7 @@ const mockData: Referrer[] = [
 ];
 
 export default function ReferralTable() {
-  const [page, setPage] = useState(1);
+ // const [page, setPage] = useState(1);
 
   return (
     <div className="p-6 bg-white rounded-2xl border-0">

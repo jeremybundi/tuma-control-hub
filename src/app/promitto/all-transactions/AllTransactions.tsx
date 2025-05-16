@@ -6,8 +6,8 @@ import Sidebar from "../components/Sidebar";
 import Footer from "../components/Footer";
 import DateFilter from "../components/DateFilter";
 import * as XLSX from "xlsx";
-import api from '../../../hooks/useApi';
-import {
+import useApi from '../../../hooks/useApi';
+/*import {
   Pagination,
   PaginationContent,
   PaginationEllipsis,
@@ -15,7 +15,7 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "@/components/ui/pagination";
+} from "../../../components/ui/pagination"; */
 
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
@@ -58,7 +58,7 @@ export interface Transaction {
 }
 
 export default function AllTransactionsPage() {
-  const { get } = api();
+  const { get } = useApi();
   const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
   const [filteredTransactions, setFilteredTransactions] = useState<
     Transaction[]
@@ -140,14 +140,14 @@ export default function AllTransactionsPage() {
     const fetchTransactions = async () => {
       try {
         setLoading(true);
-        const data = await get<any>(
+        // Use the get function from your hook
+        const data = await get<{content: any[], totalElements: number}>(
           `/transfer/partner-transactions?page=${currentPage}&size=${rowsPerPage}`
         );
-    
-        const transactionsData = Array.isArray(data)
-          ? data
-          : data.content || [];
+
+        const transactionsData = Array.isArray(data) ? data : data.content || [];
         const total = data.totalElements || data.length || 0;
+
 
         const mappedTransactions = transactionsData.map((item: any) => ({
           transactionId: item.transactionId || 0,

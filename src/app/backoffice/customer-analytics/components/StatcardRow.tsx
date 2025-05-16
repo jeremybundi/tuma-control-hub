@@ -4,7 +4,7 @@ import {
   FaBuilding,
   FaDollarSign,
   FaPhone,
-  FaReceipt,
+ // FaReceipt,
   FaWallet,
 } from "react-icons/fa";
 const cards = [

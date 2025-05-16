@@ -12,8 +12,8 @@ import {
 import {
   ChartConfig,
   ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
+ // ChartTooltip,
+ // ChartTooltipContent,
 } from "../../../../components/ui/chart";
 
 // Define JSON data inline

@@ -4,7 +4,7 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  Legend,
+  //Legend,
   ResponsiveContainer,
   Tooltip,
   XAxis,

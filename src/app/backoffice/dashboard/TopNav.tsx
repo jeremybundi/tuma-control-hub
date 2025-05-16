@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { Bell, Search, Menu, X } from "lucide-react";
+import { Bell, Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion"; // added
 import { useRouter } from 'next/navigation';
 

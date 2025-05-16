@@ -7,7 +7,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
-import { useEffect, useState } from "react";
+//import { useEffect, useState } from "react";
 
 const data = [
   { name: "Transfer Error", value: 200, time: 5.6, color: "#7b2ff7" },

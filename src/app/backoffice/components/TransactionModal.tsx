@@ -171,7 +171,7 @@ const ReceiptPDF = ({
   transaction,
   formatDateEAT,
   formatDateTime,
-  formatChannelName,
+// formatChannelName,
 }: {
   transaction: Transaction;
   formatDateTime: (date: string) => string;
@@ -273,7 +273,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
   onClose,
   transaction,
 }) => {
-  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [ setIsGeneratingPdf] = useState(false);
 
   if (!isOpen || !transaction) return null;
 

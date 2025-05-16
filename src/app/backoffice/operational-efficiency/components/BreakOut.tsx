@@ -8,11 +8,14 @@ import {
   CartesianGrid,
   ResponsiveContainer,
   Tooltip,
-  Legend,
+ // Legend,
 } from "recharts";
 import { CardContent } from "../../../../components/ui/card";
 import { Button } from "../../../../components/ui/button";
-import { ChevronDown, TrendingUp, TrendingDown } from "lucide-react";
+import { ChevronDown, 
+  //TrendingUp,
+  //  TrendingDown
+   } from "lucide-react";
 import {
   Popover,
   PopoverContent,

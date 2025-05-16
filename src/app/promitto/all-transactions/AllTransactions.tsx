@@ -63,7 +63,9 @@ export default function AllTransactionsPage() {
   const [filteredTransactions, setFilteredTransactions] = useState<
     Transaction[]
   >([]);
-  const [totalRecords, setTotalRecords] = useState(0);
+  const [
+    totalRecords, 
+    setTotalRecords] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");

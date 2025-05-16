@@ -182,7 +182,7 @@ const ReceiptPDF = ({
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
-          <Image src="/tuma-logo.png" style={styles.logo} cache={false} />
+          <Image src="/backoffice/tuma-logo.png" style={styles.logo} cache={false} />
           <Text style={styles.amount}>
             {transaction.currencyIso3a}{" "}
             {Number(transaction.senderAmount).toFixed(0)}
@@ -274,6 +274,14 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
   transaction,
 }) => {
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  // Add loading overlay when generating PDF
+if (isGeneratingPdf) {
+  return (
+    <div className="">
+     
+    </div>
+  );
+}
 
   if (!isOpen || !transaction) return null;
 

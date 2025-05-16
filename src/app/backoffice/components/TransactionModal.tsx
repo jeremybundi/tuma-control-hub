@@ -133,7 +133,7 @@ const getStatusDetails = (status: string, errorMessage?: string) => {
     },
     Reversed: {
       title: "Transaction Reversed",
-      icon: "/backoffice/icons/reversed.svg",
+      icon: "/backoffice/backoffice/icons/reversed.svg",
       reason: "Transaction has been reversed to sender",
     },
     Refunded: {
@@ -171,7 +171,7 @@ const ReceiptPDF = ({
   transaction,
   formatDateEAT,
   formatDateTime,
-// formatChannelName,
+ // formatChannelName,
 }: {
   transaction: Transaction;
   formatDateTime: (date: string) => string;
@@ -182,7 +182,7 @@ const ReceiptPDF = ({
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.header}>
-          <Image src="/backoffice/tuma-logo.png" style={styles.logo} cache={false} />
+          <Image src="/tuma-logo.png" style={styles.logo} cache={false} />
           <Text style={styles.amount}>
             {transaction.currencyIso3a}{" "}
             {Number(transaction.senderAmount).toFixed(0)}
@@ -274,7 +274,7 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
   transaction,
 }) => {
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
-  
+
   if (!isOpen || !transaction) return null;
 
   const statusDetails = getStatusDetails(

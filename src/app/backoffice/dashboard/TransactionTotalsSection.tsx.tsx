@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Separator } from "@/components/ui/separator";
+import { Separator } from "../../../components/ui/separator";
 import { FaWallet } from "react-icons/fa6";
 import { BsCalendar2DateFill, BsFillBarChartLineFill } from "react-icons/bs";
 import { TrendingUp } from "lucide-react";

@@ -9,14 +9,14 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from "recharts";
-import { CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { CardContent } from "../../../../components/ui/card";
+import { Button } from "../../../../components/ui/button";
 import { ChevronDown } from "lucide-react";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
+} from "../../../../components/ui/popover";
 
 const data = [
   {

@@ -234,7 +234,7 @@ export default function AllTransactionsPage() {
     };
 
     fetchTransactions();
-  }, [currentPage, get]); // Added 'get' to dependency array as it's used in useEffect
+  }, [currentPage]); // Added 'get' to dependency array as it's used in useEffect
 
   // Filter transactions based on search term and date range
   useEffect(() => {

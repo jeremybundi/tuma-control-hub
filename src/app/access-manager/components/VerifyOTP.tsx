@@ -3,21 +3,25 @@
 import { useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import axios from "axios";
-import { useDispatch } from "react-redux";
-import { setCredentials } from "../../../store/authSlice";
 import { jwtDecode } from "jwt-decode";
+import useAuth from "../../../hooks/Auth"; 
 
 interface DecodedToken {
   exp: number;
   [key: string]: unknown;
 }
 
+interface OtpVerificationResponse {
+  accessToken: string;
+  refreshToken: string;
+}
+
 const VerifyOTPContent = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const dispatch = useDispatch();
   const email = searchParams.get("email") || "";
+
+  const { post } = useAuth();
 
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState("");
@@ -36,7 +40,10 @@ const VerifyOTPContent = () => {
     }
   };
 
-  const handleKeyDown = (index: number, event: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (
+    index: number,
+    event: React.KeyboardEvent<HTMLInputElement>
+  ) => {
     if (event.key === "Backspace" && !otp[index] && index > 0) {
       document.getElementById(`otp-${index - 1}`)?.focus();
       const newOtp = [...otp];
@@ -48,6 +55,7 @@ const VerifyOTPContent = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError("");
     const verificationCode = otp.join("");
 
     if (verificationCode.length !== 6) {
@@ -57,67 +65,46 @@ const VerifyOTPContent = () => {
     }
 
     try {
-      console.log("Sending OTP verification request...");
-      const response = await axios.post(
-        "http://tuma-dev-backend-auth-alb-2099885708.us-east-1.elb.amazonaws.com/api/auth/email",
+      const responseData = await post<OtpVerificationResponse>(
+        "/auth/email",
         {
           email: email,
-          verificationCode: verificationCode
-        },
-        {
-          headers: {
-            "Content-Type": "application/json"
-          }
+          verificationCode: verificationCode,
         }
       );
 
-      console.log("API Response:", response.data);
-
-      if (response.status === 200 && response.data.accessToken) {
-        const decodedToken = jwtDecode<DecodedToken>(response.data.accessToken);
+      if (responseData && responseData.accessToken) {
+        const decodedToken = jwtDecode<DecodedToken>(responseData.accessToken);
         const tokenExpiry = decodedToken.exp * 1000;
 
-        console.log("Decoded Token Data:", {
-          rawToken: response.data.accessToken,
-          decoded: decodedToken,
-          expiryDate: new Date(tokenExpiry),
-          currentTime: new Date(),
-          expiresIn: Math.round((tokenExpiry - Date.now()) / 1000 / 60) + " minutes"
-        });
-
-        dispatch(setCredentials({
-          accessToken: response.data.accessToken,
-          refreshToken: response.data.refreshToken,
-          tokenExpiry: tokenExpiry
-        }));
-
-        console.log("Data dispatched to Redux store:", {
-          accessToken: response.data.accessToken,
-          refreshToken: response.data.refreshToken,
-          tokenExpiry: tokenExpiry
-        });
+      /*  console.log("Authentication successful. Tokens received:", {
+          accessToken: responseData.accessToken,
+          refreshToken: responseData.refreshToken,
+          tokenExpiry: new Date(tokenExpiry),
+        }); */
         
+        // TODO: Implement token storage (e.g., localStorage, Context API)
+        // localStorage.setItem('accessToken', responseData.accessToken);
+        // localStorage.setItem('refreshToken', responseData.refreshToken);
+        // localStorage.setItem('tokenExpiry', tokenExpiry.toString());
+
         setError("");
-        // Redirect to dashboard instead of opening modal
         router.push("/dashboard");
       } else {
-        console.warn("Unexpected API response format:", response);
-        setError("Invalid OTP. Please try again.");
+        setError("Invalid OTP or unexpected response. Please try again.");
         setOtp(["", "", "", "", "", ""]);
-        document.getElementById("otp-0")?.focus();
+        if (typeof document !== "undefined") document.getElementById("otp-0")?.focus();
       }
-    } catch (err) {
-      console.error("OTP verification error:", err);
-      if (axios.isAxiosError(err)) {
-        console.error("Axios error details:", {
-          status: err.response?.status,
-          data: err.response?.data,
-          headers: err.response?.headers
-        });
+    } catch (err: any) {
+      let errorMessage = "Invalid OTP. Please try again.";
+      if (err.response && err.response.data && err.response.data.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.message) {
+        errorMessage = err.message;
       }
-      setError("Invalid OTP. Please try again.");
+      setError(errorMessage);
       setOtp(["", "", "", "", "", ""]);
-      document.getElementById("otp-0")?.focus();
+      if (typeof document !== "undefined") document.getElementById("otp-0")?.focus();
     } finally {
       setIsLoading(false);
     }
@@ -125,13 +112,16 @@ const VerifyOTPContent = () => {
 
   const handleResendOTP = async () => {
     setResendDisabled(true);
+    setError("");
     try {
-      await axios.post(
-        `https://auth.tuma-app.com/api/auth/send-otp/${encodeURIComponent(email)}`
-      );
-      alert("A new OTP has been sent to your email.");
-    } catch (err) {
-      alert("Failed to resend OTP. Please try again.");
+      await post<any>(`/send-otp/${encodeURIComponent(email)}`);
+      if (typeof alert !== "undefined") alert("A new OTP has been sent to your email.");
+    } catch (err: any) {
+      let alertMessage = "Failed to resend OTP. Please try again.";
+      if (err.response && err.response.data && err.response.data.message) {
+        alertMessage = err.response.data.message;
+      }
+      if (typeof alert !== "undefined") alert(alertMessage);
       console.error("Resend OTP error:", err);
     } finally {
       setTimeout(() => {
@@ -143,7 +133,6 @@ const VerifyOTPContent = () => {
   return (
     <div className="flex min-h-screen font-poppins items-center justify-center bg-gray-100">
       <div className="w-full max-w-full overflow-hidden flex">
-        {/* Left Column: Image */}
         <div className="w-1/2 relative">
           <Image
             src="/user-access/images/lady.png"
@@ -155,31 +144,30 @@ const VerifyOTPContent = () => {
           />
         </div>
 
-        {/* Right Column: OTP Form */}
         <div className="w-1/2 mt-32 px-24 pr-40">
           <h2 className="text-4xl font-bold text-gray-800 mb-12 flex items-center gap-4">
-            <Image 
-              src="/user-access/images/logo.png" 
-              alt="Logo" 
-              width={40} 
-              height={35} 
+            <Image
+              src="/user-access/images/logo.png"
+              alt="Logo"
+              width={40}
+              height={35}
             />
             Control Hub
           </h2>
-          
+
           <h1 className="text-2xl text-gray-800 font-semibold mb-8">
             OTP Verification
           </h1>
-          
+
           <p className="text-gray-400 font-medium text-lg mb-7">
             Enter the verification code we just sent to <br />
             <span className="font-medium text-gray-900 flex items-center">
-              {email}          
-              <Image 
-                src="/user-access/images/pen.png" 
-                alt="Edit" 
-                width={16} 
-                height={16} 
+              {email}
+              <Image
+                src="/user-access/images/pen.png"
+                alt="Edit"
+                width={16}
+                height={16}
                 className="ml-2 inline-block align-middle"
               />
             </span>
@@ -205,6 +193,7 @@ const VerifyOTPContent = () => {
                   value={otp[index] || ""}
                   onChange={(e) => handleChange(index, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(index, e)}
+                  autoComplete="off"
                 />
               ))}
             </div>
@@ -213,7 +202,9 @@ const VerifyOTPContent = () => {
               type="submit"
               disabled={isLoading}
               className={`w-full mt-6 bg-gray-800 text-white font-semibold text-xl py-3 rounded-lg transition duration-300 ${
-                isLoading ? "opacity-70" : "hover:bg-gray-900"
+                isLoading
+                  ? "opacity-70 cursor-not-allowed"
+                  : "hover:bg-gray-900"
               }`}
             >
               {isLoading ? "Verifying..." : "Verify"}
@@ -221,11 +212,11 @@ const VerifyOTPContent = () => {
           </form>
 
           <p className="mt-6 text-center text-gray-500 text-lg">
-          Don&apos;t receive the code? 
-            <button 
-              onClick={handleResendOTP} 
-              disabled={resendDisabled} 
-              className="ml-2 text-blue-600 font-semibold hover:underline disabled:opacity-50"
+            Don't receive the code?
+            <button
+              onClick={handleResendOTP}
+              disabled={resendDisabled}
+              className="ml-2 text-blue-600 font-semibold hover:underline disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Resend
             </button>
@@ -238,7 +229,13 @@ const VerifyOTPContent = () => {
 
 const VerifyOTP = () => {
   return (
-    <Suspense fallback={<div className="flex justify-center items-center h-screen">Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className="flex justify-center items-center h-screen">
+          Loading...
+        </div>
+      }
+    >
       <VerifyOTPContent />
     </Suspense>
   );

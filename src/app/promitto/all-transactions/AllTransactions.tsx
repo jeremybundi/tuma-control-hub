@@ -177,7 +177,6 @@ export default function AllTransactionsPage() {
         const transactionsData = Array.isArray(data) ? data : data.content || [];
         //const total = data.totalElements || data.length || 0;
 
-
         const mappedTransactions = transactionsData.map((item: ApiTransactionResponse) => ({
           transactionId: item.transactionId || 0,
           transactionKey: item.transactionKey || "N/A",
@@ -208,15 +207,17 @@ export default function AllTransactionsPage() {
               : item.status === "ESCALATED"
               ? "Escalated"
               : "Failed",
-              currencyIso3a: item.currencyIso3a || "N/A",
-              receiverCurrencyIso3a: item.receiverCurrencyIso3a || "N/A",
-              transactionType: formatChannelName(item.transactionType || "Unknown"),
-              accountNumber: item.accountNumber || "N/A",
-              settlementReference: item.settlementReference || "N/A",
-              tpReference: item.tpReference || "N/A",
+          currencyIso3a: item.currencyIso3a || "N/A",
+          receiverCurrencyIso3a: item.receiverCurrencyIso3a || "N/A",
+          transactionType: formatChannelName(item.transactionType || "Unknown"),
+          accountNumber: item.accountNumber || "N/A",
+          settlementReference: item.settlementReference || "N/A",
+          tpReference: item.tpReference || "N/A",
           mpesaReference: item.mpesaReference || null,
           rawDate: item.date ? new Date(item.date) : new Date(),
           errorMessage: item.errorMessage || "N/A",
+          userId: item.userId || null,  // Add this line
+          bankName: item.bankName || null  // Add this line
         }));
 
         setAllTransactions(mappedTransactions);

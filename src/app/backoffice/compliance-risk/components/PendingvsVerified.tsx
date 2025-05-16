@@ -32,7 +32,7 @@ const options = {
 };
 
 export default function PendingVsVerified() {
-  const [filter, setFilter] = useState("Monthly");
+  const [filter] = useState("Monthly");
 
   return (
     <div className="w-full max-w-xs mx-auto p-4">

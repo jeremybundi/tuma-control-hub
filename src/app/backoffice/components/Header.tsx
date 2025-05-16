@@ -9,7 +9,7 @@ export default function Header() {
           Welcome back, <span className="font-bold">Nelson Juma</span>
         </h1>
         <p className="text-xs text-white/80">
-          Here's a snapshot of how the bank has performed so far
+        Here&rsquo;s a snapshot of how the bank has performed so far
         </p>
       </div>
     </div>

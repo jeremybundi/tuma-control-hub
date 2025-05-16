@@ -8,7 +8,7 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  DotProps,
+ // DotProps,
 } from "recharts";
 import { TrendingDown } from "lucide-react";
 

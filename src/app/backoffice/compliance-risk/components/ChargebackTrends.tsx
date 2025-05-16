@@ -96,7 +96,7 @@ const barOptions = {
 };
 
 export default function ChargebackTrends() {
-  const [filter, setFilter] = useState("Yearly");
+  const [filter] = useState("Yearly");
 
   return (
     <div className="w-full p-4 rounded-lg">

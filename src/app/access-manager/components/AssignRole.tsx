@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { IoCloseCircleOutline } from "react-icons/io5";
-import { useSelector } from "react-redux";
-import { RootState } from "@/store/store";
 import { IoIosArrowDown } from "react-icons/io";
 import auth from "../../../hooks/Auth";
 
@@ -33,13 +31,11 @@ export default function AssignRoleModal({ isOpen, onClose, user }: AssignRoleMod
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  // Initialize the auth hook
   const { get, post } = auth();
 
   useEffect(() => {
     const fetchRoles = async () => {
       try {
-        // Use the auth hook's get method
         const data = await get<Role[]>('/role/roles');
         setRoles(data);
       } catch (error) {
@@ -63,10 +59,9 @@ export default function AssignRoleModal({ isOpen, onClose, user }: AssignRoleMod
     setError(null);
   
     try {
-      // Use the auth hook's post method
       await post(
         `/account/assign/role`,
-        null, // Empty body
+        null,
         {
           params: {
             accountKey: user.accountKey,
@@ -76,11 +71,19 @@ export default function AssignRoleModal({ isOpen, onClose, user }: AssignRoleMod
       );
       
       onClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error assigning role:", error);
-      const errorMessage = error.response?.data?.message 
-        || error.message 
-        || "Failed to assign role. Please try again.";
+      let errorMessage = "Failed to assign role. Please try again.";
+      
+      if (typeof error === 'object' && error !== null) {
+        const err = error as { response?: { data?: { message?: string } }, message?: string };
+        if (err.response?.data?.message) {
+          errorMessage = err.response.data.message;
+        } else if (err.message) {
+          errorMessage = err.message;
+        }
+      }
+      
       setError(errorMessage);
     } finally {
       setIsSubmitting(false);

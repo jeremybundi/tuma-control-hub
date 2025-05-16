@@ -1,14 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
-import SideNav from "../components/SideNav"
-import { RootState } from "@/store/store";
+import SideNav from "../components/SideNav";
 import { IoIosSearch, IoIosArrowForward } from "react-icons/io";
 import AssignRoleModal from "../components/AssignRole";
 import auth from "../../../hooks/Auth";
 
-type UserStatus = "active" |  "pending";
+type UserStatus = "active" | "pending";
 
 interface User {
   id: number;
@@ -45,13 +43,10 @@ export default function UserTable() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const accessToken = useSelector((state: RootState) => state.auth.accessToken);
   const [message, setMessage] = useState<string | null>(null);
   const [messageType, setMessageType] = useState<"success" | "error" | null>(null);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const { get, post } = auth();
-
-
 
   const getInitials = (firstName: string, lastName: string) =>
     `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
@@ -67,23 +62,18 @@ export default function UserTable() {
       "bg-indigo-100 text-indigo-600",
       "bg-teal-100 text-teal-600",
     ];
-
     let hash = 0;
     for (let i = 0; i < initials.length; i++) {
       hash = initials.charCodeAt(i) + ((hash << 5) - hash);
     }
     const index = Math.abs(hash) % colors.length;
-
     return colors[index];
   };
-
 
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        // Use the new auth hook's get method
         const data = await get<ApiUser[]>("/account/system-users-requests");
-        
         const transformedUsers = data.map((user: ApiUser): User => ({
           id: user.id,
           userKey: user.userKey || `user_${user.id}`,
@@ -97,7 +87,7 @@ export default function UserTable() {
           createdAt: user.createdAt ? new Date(user.createdAt).getTime() : Date.now(),
           modifiedAt: user.modifiedAt ? new Date(user.modifiedAt).getTime() : Date.now(),
         }));
-        
+
         setUsers(transformedUsers);
         setFilteredUsers(transformedUsers);
         setError(null);

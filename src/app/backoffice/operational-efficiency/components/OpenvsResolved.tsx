@@ -1,13 +1,13 @@
 "use client";
 
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
-import { CardContent } from "@/components/ui/card";
+import { CardContent } from "../../../../components/ui/card";
 import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-} from "@/components/ui/chart";
+} from "../../../../components/ui/chart";
 import { TrendingDown, TrendingUp } from "lucide-react";
 
 const chartData = [

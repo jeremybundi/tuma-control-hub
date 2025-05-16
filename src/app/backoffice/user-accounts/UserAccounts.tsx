@@ -10,7 +10,7 @@ import {
   getInitials,
   getPastelColor,
   statusStyles,
-} from "@/app/user-accounts/components/constants";
+} from "./components/constants";
 import { AnimatePresence } from "framer-motion";
 
 interface User {

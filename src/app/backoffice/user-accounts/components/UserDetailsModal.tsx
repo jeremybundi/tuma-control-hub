@@ -7,7 +7,7 @@ import {
   getInitials,
   getPastelColor,
   statusStyles,
-} from "@/app/user-accounts/components/constants";
+} from "./constants";
 
 interface User {
   accountId: number;

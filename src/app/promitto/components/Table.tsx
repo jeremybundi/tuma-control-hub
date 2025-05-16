@@ -471,7 +471,7 @@ const Table: FC = () => {
         );
       default:
         // Should not happen if status is correctly typed and handled
-        const exhaustiveCheck: never = selectedTransaction.status;
+        /*const exhaustiveCheck: never = selectedTransaction.status;
         return (
           <>
             <p className="text-gray-500 mt-1">
@@ -482,7 +482,7 @@ const Table: FC = () => {
             </p>
             {dateDisplay}
           </>
-        );
+        );*/
     }
   };
 

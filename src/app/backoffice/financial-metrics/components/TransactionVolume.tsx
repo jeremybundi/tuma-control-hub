@@ -10,7 +10,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { CardContent } from "@/components/ui/card";
+import { CardContent } from "../../../../components/ui/card";
 import { ChevronDown } from "lucide-react";
 import { TrendingDown, TrendingUp } from "lucide-react";
 

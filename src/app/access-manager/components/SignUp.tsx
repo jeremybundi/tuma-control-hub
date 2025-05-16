@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import Popup from "@/app/access-manager/components/Popup";
+import Popup from "./Popup";
 import axios from "axios";
 import { IoIosArrowDown } from "react-icons/io";
 

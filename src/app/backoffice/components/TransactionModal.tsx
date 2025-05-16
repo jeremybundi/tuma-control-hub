@@ -273,8 +273,8 @@ const TransactionModal: React.FC<TransactionModalProps> = ({
   onClose,
   transaction,
 }) => {
-  const [ setIsGeneratingPdf] = useState(false);
-
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  
   if (!isOpen || !transaction) return null;
 
   const statusDetails = getStatusDetails(

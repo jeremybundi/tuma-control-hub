@@ -8,9 +8,10 @@ import DateFilter from "../components/DateFilter";
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
 import TransactionModal from "../components/TransactionModal";
-import { Transaction } from "../types/transactions";
+import {Transaction}  from "../types/transactions";
 import * as XLSX from "xlsx";
 import api from "../../../hooks/useApi";
+
 
 
 const TransactionsPage = () => {
@@ -77,32 +78,30 @@ const TransactionsPage = () => {
         let page = 1;
         let allData: Transaction[] = [];
         let hasMore = true;
-  
+    
         while (hasMore) {
           const result = await get<Transaction[]>(
             `/transfer/all-transactions?page=${page}&size=${rowsPerPage}`
           );
-  
-          // Validate API response
+    
           if (!result || !Array.isArray(result)) {
             throw new Error("Invalid API response format.");
           }
-  
-          // Stop if no more results
+    
           if (result.length === 0) {
             hasMore = false;
             continue;
           }
-  
-          // Safely format transactions with fallback values
-          const formattedTransactions = result.map((tx) => ({
+    
+          // Explicitly type the formatted transactions
+          const formattedTransactions: Transaction[] = result.map((tx) => ({
             transactionReference: tx.transactionReference || "N/A",
             transactionId: tx.transactionId || "N/A",
             senderName: tx.senderName || "Unknown Sender",
             receiverName: tx.receiverName || "Unknown Recipient",
             senderAmount: tx.senderAmount || 0,
             currencyIso3a: tx.currencyIso3a || "USD",
-            date: tx.date || new Date().toISOString(), // Fallback to current date
+            date: tx.date || new Date().toISOString(),
             status:
               tx.status === "SUCCESS"
                 ? "Success"
@@ -126,7 +125,7 @@ const TransactionsPage = () => {
             receiverPhone: tx.receiverPhone || "N/A",
             senderPhone: tx.senderPhone || "N/A",
             transactionKey: tx.transactionKey || "N/A",
-            accountNumber: tx.accountNumber || "N/A",
+            accountNumber: tx.accountNumber || "N/A", // This now matches the interface
             settlementReference: tx.settlementReference || "N/A",
             recipientAmount: tx.recipientAmount || 0,
             senderEmail: tx.senderEmail || "N/A",
@@ -137,17 +136,16 @@ const TransactionsPage = () => {
             userID: tx.userID || "N/A",
             bankName: tx.bankName || "N/A",
           }));
-  
+    
           allData = [...allData, ...formattedTransactions];
           page++;
-  
-          // Safety limit to prevent infinite loops
+    
           if (page > 50) {
             console.warn("Reached maximum page limit (50)");
             hasMore = false;
           }
         }
-  
+    
         setAllTransactions(allData);
         setFilteredTransactions(allData);
       } catch (err) {

@@ -54,6 +54,7 @@
     "@eslint/eslintrc": "^3",
     "@swc/core": "^1.11.24",
     "@swc/helpers": "^0.5.17",
+    "@tailwindcss/postcss": "^4.1.7",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-date-range": "^1.4.10",

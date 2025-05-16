@@ -10,9 +10,9 @@ import {
   Cell,
   Label,
 } from "recharts";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card";
 import { useEffect, useState } from "react";
-import api from "@/hooks/useApi";
+import api from "../../../hooks/useApi";
 
 
 type ApiResponse = {

@@ -1,7 +1,7 @@
 import { FC, useState, useEffect, useRef } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-import api from '@/hooks/useApi';
+import api from '../../../hooks/useApi';
 
 
 interface Transaction {

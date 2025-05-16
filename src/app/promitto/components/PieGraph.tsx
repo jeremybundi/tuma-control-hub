@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import api from "@/hooks/useApi"; 
+import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card";
+import api from "../../../hooks/useApi"; 
 
 
 // Colors for the chart

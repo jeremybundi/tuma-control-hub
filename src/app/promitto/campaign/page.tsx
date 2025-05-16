@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import ProtectedRoute from '../components/ProtectedRoute';
+//import ProtectedRoute from '../components/ProtectedRoute';
 import Image from 'next/image';
 import SideNav from '../components/Sidebar';
 import CampaignWinners from './CampaignWinners';
@@ -11,7 +11,6 @@ export default function CampaignsPage() {
   const [activeTab, setActiveTab] = useState('registration');
 
   return (
-    <ProtectedRoute adminOnly>
 
     <div className="relative font-outfit h-screen w-full overflow-hidden">
       <div className="absolute inset-0 ">
@@ -51,7 +50,6 @@ export default function CampaignsPage() {
         </div>
       </div>
     </div>
-    </ProtectedRoute>
 
   );
 }

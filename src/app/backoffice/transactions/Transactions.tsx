@@ -10,7 +10,7 @@ import "react-date-range/dist/theme/default.css";
 import TransactionModal from "../components/TransactionModal";
 import { Transaction } from "../types/transactions";
 import * as XLSX from "xlsx";
-import api from "@/hooks/useApi";
+import api from "../../../hooks/useApi";
 
 
 const TransactionsPage = () => {

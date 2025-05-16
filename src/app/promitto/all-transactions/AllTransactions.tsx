@@ -23,6 +23,37 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import { FaCalendarAlt, FaFileExport } from "react-icons/fa";
 
+export interface ApiTransactionResponse {
+  transactionId?: number;
+  transactionKey?: string;
+  senderName?: string;
+  senderEmail?: string;
+  senderPhone?: string;
+  receiverName?: string;
+  receiverPhone?: string | null;
+  senderAmount?: number;
+  recipientAmount?: number;
+  exchangeRate?: number;
+  date?: string;
+  status?: string;
+  currencyIso3a?: string;
+  receiverCurrencyIso3a?: string;
+  transactionType?: string;
+  accountNumber?: string;
+  settlementReference?: string;
+  tpReference?: string;
+  mpesaReference?: string | null;
+  errorMessage?: string;
+  userId?: string | null;
+  bankName?: string | null;
+}
+
+export interface ApiTransactionsResponse {
+  content: ApiTransactionResponse[];
+  totalElements: number;
+}
+
+
 export interface Transaction {
   transactionId: number;
   transactionKey: string;
@@ -63,9 +94,7 @@ export default function AllTransactionsPage() {
   const [filteredTransactions, setFilteredTransactions] = useState<
     Transaction[]
   >([]);
-  const [
-    totalRecords, 
-    setTotalRecords] = useState(0);
+ // const [ totalRecords,  setTotalRecords] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -126,7 +155,7 @@ export default function AllTransactionsPage() {
     }
   };
 
-  const statusOptions = [
+  /*const statusOptions = [
     "Success",
     "Pending",
     "Failed",
@@ -135,23 +164,21 @@ export default function AllTransactionsPage() {
     "Refunded",
     "Escalated",
     "Under Review",
-  ];
+  ]; */
 
   // Fetch transactions from API
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
         setLoading(true);
-        // Use the get function from your hook
-        const data = await get<{content: any[], totalElements: number}>(
+        const data = await get<ApiTransactionsResponse>(
           `/transfer/partner-transactions?page=${currentPage}&size=${rowsPerPage}`
         );
-
         const transactionsData = Array.isArray(data) ? data : data.content || [];
         const total = data.totalElements || data.length || 0;
 
 
-        const mappedTransactions = transactionsData.map((item: any) => ({
+        const mappedTransactions = transactionsData.map((item: ApiTransactionResponse) => ({
           transactionId: item.transactionId || 0,
           transactionKey: item.transactionKey || "N/A",
           senderName: item.senderName || "Unknown",
@@ -194,7 +221,7 @@ export default function AllTransactionsPage() {
 
         setAllTransactions(mappedTransactions);
         setFilteredTransactions(mappedTransactions);
-        setTotalRecords(total);
+      //  setTotalRecords(total);
       } catch (error) {
         console.error("Error fetching transactions:", error);
         setAllTransactions([]);
@@ -478,7 +505,7 @@ export default function AllTransactionsPage() {
     }
   };
 
-  const renderStatusBadge = (status: string) => {
+  /*const renderStatusBadge = (status: string) => {
     return (
       <span
         className={`px-3 py-1 text-xs font-medium rounded-full ${
@@ -502,7 +529,7 @@ export default function AllTransactionsPage() {
         {status}
       </span>
     );
-  };
+  }; */
 
   // Render status icon for modal
   const renderStatusIcon = () => {

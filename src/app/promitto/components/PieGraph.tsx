@@ -1,27 +1,42 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
-import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card";
-import api from "../../../hooks/useApi"; 
-
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  TooltipProps,
+} from "recharts";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../../../components/ui/card";
+import api from "../../../hooks/useApi";
+import { ValueType, NameType } from "recharts/types/component/DefaultTooltipContent";
 
 // Colors for the chart
 const COLORS = {
-  CARD_TO_PAYBILL: "#F1B80C", 
-  CARD_TO_BANK: "#92BFFF", 
+  CARD_TO_PAYBILL: "#F1B80C",
+  CARD_TO_BANK: "#92BFFF",
 };
 
 const defaultChartData = [{ name: "Loading...", value: 100, fill: "#e2e8f0" }];
 
-// Optional tooltip
-const CustomTooltip = ({ active, payload }: any) => {
+// Properly typed tooltip
+const CustomTooltip = ({
+  active,
+  payload,
+}: TooltipProps<ValueType, NameType>) => {
   if (active && payload?.length) {
     const item = payload[0];
     return (
       <div className="bg-white p-2 border rounded shadow-sm">
         <div className="font-medium">{item.name}</div>
-        <div>KES {item.value.toLocaleString()}</div>
+        <div>KES {(item.value as number).toLocaleString()}</div>
       </div>
     );
   }
@@ -38,31 +53,31 @@ type ApiResponse = {
 
 export default function PieGraph() {
   const [chartData, setChartData] = useState(defaultChartData);
-  const [isLoading, setIsLoading] = useState(true);
   const { get } = api();
-
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data: ApiResponse = await get<ApiResponse>("/transfer/get-partner-analytics");
-  
+        const data: ApiResponse = await get<ApiResponse>(
+          "/transfer/get-partner-analytics"
+        );
+
         const transformed = data.revenueBreakdown.map((item) => ({
           name: formatType(item.transactionTypeName),
           value: item.totalAmount,
-          fill: COLORS[item.transactionTypeName as keyof typeof COLORS] || "#ccc",
+          fill:
+            COLORS[item.transactionTypeName as keyof typeof COLORS] || "#ccc",
         }));
-  
+
         setChartData(transformed);
       } catch (error) {
         console.error("Error loading chart:", error);
-      } finally {
-        setIsLoading(false);
       }
     };
-  
+
     fetchData();
   }, []);
+
   const formatType = (type: string) => {
     switch (type) {
       case "CARD_TO_PAYBILL":

@@ -9,7 +9,12 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../../../components/ui/card";
 import { useEffect, useState } from "react";
 import api from "../../../hooks/useApi";
 
@@ -40,16 +45,11 @@ function AreaGraph({
   const [chartData, setChartData] = useState<{ day: string; number: number }[]>(
     []
   );
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const { get } = api();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setIsLoading(true);
-        setError(null);
-
         let url = "/transfer/get-partner-analytics";
 
         if (dateRange.startDate && dateRange.endDate) {
@@ -78,11 +78,6 @@ function AreaGraph({
         setChartData(fullWeekData);
       } catch (err) {
         console.error("Failed to fetch data:", err);
-        setError(
-          err instanceof Error ? err.message : "An unknown error occurred"
-        );
-      } finally {
-        setIsLoading(false);
       }
     };
 

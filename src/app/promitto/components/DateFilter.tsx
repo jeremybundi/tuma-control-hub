@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { DateRangePicker, Range, RangeKeyDict } from "react-date-range";
-import { FaCalendarAlt, FaClock } from "react-icons/fa";
+import { 
+  //FaCalendarAlt, 
+  FaClock } from "react-icons/fa";
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
 

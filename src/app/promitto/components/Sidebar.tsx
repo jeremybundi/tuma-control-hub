@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { FC } from "react";
 import User from '../../access-manager/components/User';
-import { useSelector } from 'react-redux';
+//import { useSelector } from 'react-redux';
 //import { isAdmin } from '../store/authSlice';
 
 const Sidebar: FC = () => {

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 //import ProtectedRoute from '../components/ProtectedRoute';
-import Image from 'next/image';
+//import Image from 'next/image';
 import SideNav from '../components/Sidebar';
 import CampaignWinners from './CampaignWinners';
 import RegistrationSpinner from './RegistrationSpinner';

@@ -1,8 +1,32 @@
-import { FC, useState, useEffect, useRef } from "react";
+import { FC, useState, useEffect } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import api from '../../../hooks/useApi';
 
+interface ApiTransaction {
+  transactionId: number;
+  transactionKey: string;
+  senderName: string;
+  senderEmail: string;
+  senderPhone: string;
+  receiverName: string;
+  receiverPhone: string | null;
+  senderAmount: number;
+  recipientAmount: number;
+  exchangeRate: number;
+  date: string;
+  status: string;
+  currencyIso3a: string;
+  receiverCurrencyIso3a: string;
+  transactionType: string;
+  accountNumber: string;
+  settlementReference: string;
+  tpReference: string;
+  mpesaReference: string | null;
+  errorMessage: string | null;
+  bankName: string | null;
+  userId: string | null;
+}
 
 interface Transaction {
   transactionId: number;
@@ -38,13 +62,11 @@ interface Transaction {
 }
 
 const Table: FC = () => {
-  
   const { get } = api(); 
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedTransaction, setSelectedTransaction] =
-    useState<Transaction | null>(null);
+  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const formatChannelName = (channel: string): string => {
@@ -71,7 +93,6 @@ const Table: FC = () => {
   const formatTimeEAT = (dateString: string | Date | undefined): string => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
-    // Convert to East Africa Time (UTC+3)
     date.setHours(date.getHours() + 3);
     const hours = date.getHours().toString().padStart(2, "0");
     const minutes = date.getMinutes().toString().padStart(2, "0");
@@ -85,24 +106,13 @@ const Table: FC = () => {
     return `${formatDate(dateString)} ${formatTimeEAT(dateString)}`;
   };
 
-  const statusOptions = [
-    "Success",
-    "Pending",
-    "Failed",
-    "Rejected",
-    "Reversed",
-    "Refunded",
-    "Escalated",
-    "Under Review",
-  ];
-
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
         setLoading(true);
-        const data = await get<any>('/transfer/partner-transactions?page=1&size=5');
-  
-        const mappedTransactions = data.map((item: any) => ({
+        const response = await get<ApiTransaction[]>('/transfer/partner-transactions?page=1&size=5');
+
+        const mappedTransactions = response.map((item) => ({
           transactionId: item.transactionId,
           transactionKey: item.transactionKey,
           senderName: item.senderName,
@@ -140,10 +150,10 @@ const Table: FC = () => {
           tpReference: item.tpReference,
           mpesaReference: item.mpesaReference,
           errorMessage: item.errorMessage,
-          userID: item.userId,
+          userId: item.userId,
           bankName: item.bankName,
         }));
-  
+
         setTransactions(mappedTransactions);
       } catch (error) {
         console.error("Error fetching transactions:", error);
@@ -151,10 +161,9 @@ const Table: FC = () => {
         setLoading(false);
       }
     };
-  
+
     fetchTransactions(); 
-  }, [] );
-  
+  }, []);
 
   useEffect(() => {
     if (selectedTransaction) {

@@ -95,8 +95,7 @@ const Login = () => {
           </h2>
           <h1 className="text-2xl text-gray-800 font-semibold mb-8">Login to your account</h1>
           <p className="text-gray-400 font-medium text-lg mb-6">
-            {/* 3. Escape the apostrophe */}
-            Don't have an account?{" "}
+            Don&apos;t have an account?{" "}
             <Link href="/" className="text-blue-600 underline">
               Request for Access
             </Link>

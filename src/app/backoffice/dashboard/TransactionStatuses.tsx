@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
-import { CardContent } from "@/components/ui/card";
+import { CardContent } from "../../../components/ui/card";
 import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-} from "@/components/ui/chart";
+} from "../../../components/ui/chart";
 import { TrendingDown, TrendingUp, ChevronDown } from "lucide-react";
 import useApi from "../../../hooks/useApi"; // Import your middleware hook
 

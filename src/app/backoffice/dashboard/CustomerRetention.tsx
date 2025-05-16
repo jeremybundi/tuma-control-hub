@@ -16,7 +16,7 @@ import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
-} from "@/components/ui/chart";
+} from "../../../components/ui/chart";
 import { TrendingDown, TrendingUp } from "lucide-react";
 import { FaFaceSmile } from "react-icons/fa6";
 

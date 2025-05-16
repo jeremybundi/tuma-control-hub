@@ -6,7 +6,7 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-} from "@/components/ui/chart";
+} from "../../../components/ui/chart";
 
 const chartData = [
   { route: "UK to Kenya", value: 150250 },

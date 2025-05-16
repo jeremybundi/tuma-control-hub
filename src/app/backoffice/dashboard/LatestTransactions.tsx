@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Transaction } from "../types/transactions";
 import { format } from "date-fns";
 import Link from "next/link";
-import useApi from "@/hooks/useApi"; 
+import useApi from "../../../hooks/useApi"; 
 
 // Utility: Random pastel background
 const pastelColors = [

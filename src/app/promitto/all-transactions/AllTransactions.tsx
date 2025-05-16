@@ -189,7 +189,7 @@ export default function AllTransactionsPage() {
           recipientAmount: item.recipientAmount || 0,
           exchangeRate: item.exchangeRate || 0,
           date: item.date ? formatDateTimeForTable(item.date) : "N/A",
-          status:
+          status: (
             item.status === "SUCCESS"
               ? "Success"
               : item.status === "PENDING"
@@ -206,7 +206,8 @@ export default function AllTransactionsPage() {
               ? "Refunded"
               : item.status === "ESCALATED"
               ? "Escalated"
-              : "Failed",
+              : "Failed"
+          ) as Transaction['status'],
           currencyIso3a: item.currencyIso3a || "N/A",
           receiverCurrencyIso3a: item.receiverCurrencyIso3a || "N/A",
           transactionType: formatChannelName(item.transactionType || "Unknown"),
@@ -233,7 +234,7 @@ export default function AllTransactionsPage() {
     };
 
     fetchTransactions();
-  }, [currentPage]);
+  }, [currentPage, get]); // Added 'get' to dependency array as it's used in useEffect
 
   // Filter transactions based on search term and date range
   useEffect(() => {
@@ -417,7 +418,7 @@ export default function AllTransactionsPage() {
 
       const csvContent = [
         headers.join(","),
-        ...rows.map((row) => row.map((field) => `"${field}"`).join(",")),
+        ...rows.map((row) => row.map((field) => `"${String(field).replace(/"/g, '""')}"`).join(",")), // Ensure fields are stringified and quotes escaped
       ].join("\n");
 
       const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -468,10 +469,12 @@ export default function AllTransactionsPage() {
 
       const hiddenContainer = document.createElement("div");
       hiddenContainer.style.position = "fixed";
-      hiddenContainer.style.top = "-9999px";
-      hiddenContainer.style.width = "100%";
-      hiddenContainer.style.display = "flex";
-      hiddenContainer.style.justifyContent = "center";
+      hiddenContainer.style.top = "-9999px"; // Keep it off-screen
+      hiddenContainer.style.left = "-9999px"; // Keep it off-screen
+      hiddenContainer.style.width = "auto"; // Let content define width
+      hiddenContainer.style.height = "auto"; // Let content define height
+      // hiddenContainer.style.display = "flex"; // Not needed if positioning off-screen
+      // hiddenContainer.style.justifyContent = "center"; // Not needed
       hiddenContainer.appendChild(clonedReceipt);
       document.body.appendChild(hiddenContainer);
 
@@ -483,12 +486,29 @@ export default function AllTransactionsPage() {
       });
 
       const pdf = new jsPDF("p", "mm", "a4");
-      const pdfWidth = 210;
-      const pdfHeight = 297;
-      const imgWidth = pdfWidth - 40;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const pdfWidth = pdf.internal.pageSize.getWidth(); // 210 for A4
+      const pdfHeight = pdf.internal.pageSize.getHeight(); // 297 for A4
+      
+      const canvasWidth = canvas.width;
+      const canvasHeight = canvas.height;
+
+      // Calculate the aspect ratio
+      const canvasAspectRatio = canvasWidth / canvasHeight;
+      
+      // Define margins (e.g., 10mm)
+      const margin = 10; 
+      let imgWidth = pdfWidth - 2 * margin;
+      let imgHeight = imgWidth / canvasAspectRatio;
+
+      // If image height exceeds page height with margins, scale by height instead
+      if (imgHeight > pdfHeight - 2 * margin) {
+        imgHeight = pdfHeight - 2 * margin;
+        imgWidth = imgHeight * canvasAspectRatio;
+      }
+      
       const xOffset = (pdfWidth - imgWidth) / 2;
       const yOffset = (pdfHeight - imgHeight) / 2;
+
 
       pdf.addImage(
         canvas.toDataURL("image/png"),
@@ -503,6 +523,9 @@ export default function AllTransactionsPage() {
       document.body.removeChild(hiddenContainer);
     } catch (error) {
       console.error("Error generating PDF:", error);
+       if (document.body.contains(hiddenContainer)) { // Check if container exists before removing
+         document.body.removeChild(hiddenContainer);
+       }
     }
   };
 
@@ -760,17 +783,17 @@ export default function AllTransactionsPage() {
           </div>
         </div>
         {/* Date filter active indicator */}
-        {dateRange.startDate && (
+        {dateRange.startDate && dateRange.endDate && (
           <div className="text-sm text-gray-500">
             Showing transactions from {dateRange.startDate.toLocaleDateString()}{" "}
-            to {dateRange.endDate?.toLocaleDateString()}
+            to {dateRange.endDate.toLocaleDateString()}
           </div>
         )}
         {/* Export Modal */}
         {isExportModalVisible && (
           <div className="fixed inset-0 z-50 flex justify-end">
             <div
-              className="bg-black bg-opacity-30 w-full h-full"
+              className="bg-black bg-opacity-30 w-full h-full fixed inset-0" // Ensure it covers the whole screen
               onClick={() => setIsExportModalVisible(false)}
             ></div>
             <div className="bg-white w-96 h-full shadow-lg p-6 overflow-y-auto relative transform transition-transform duration-300 translate-x-0">
@@ -778,7 +801,7 @@ export default function AllTransactionsPage() {
                 className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-2xl"
                 onClick={() => setIsExportModalVisible(false)}
               >
-                &times;
+                ×
               </button>
               <h2 className="text-lg font-bold text-gray-900">
                 Export Transactions
@@ -794,7 +817,7 @@ export default function AllTransactionsPage() {
                     value="all"
                     checked={exportType === "all"}
                     onChange={() => setExportType("all")}
-                    className="form-checkbox text-green-500"
+                    className="form-radio h-4 w-4 text-yellow-500 border-gray-300 focus:ring-yellow-400" // Tailwind form-radio
                   />
                 </label>
                 <label className="flex justify-between items-center py-3 border-b border-gray-200 cursor-pointer">
@@ -807,7 +830,7 @@ export default function AllTransactionsPage() {
                     value="filtered"
                     checked={exportType === "filtered"}
                     onChange={() => setExportType("filtered")}
-                    className="form-checkbox text-green-500"
+                    className="form-radio h-4 w-4 text-yellow-500 border-gray-300 focus:ring-yellow-400"
                   />
                 </label>
               </div>
@@ -823,7 +846,7 @@ export default function AllTransactionsPage() {
                     value="csv"
                     checked={fileType === "csv"}
                     onChange={() => setFileType("csv")}
-                    className="form-checkbox text-green-500"
+                    className="form-radio h-4 w-4 text-yellow-500 border-gray-300 focus:ring-yellow-400"
                   />
                 </label>
                 <label className="flex justify-between items-center py-3 border-b border-gray-200 cursor-pointer">
@@ -834,7 +857,7 @@ export default function AllTransactionsPage() {
                     value="excel"
                     checked={fileType === "excel"}
                     onChange={() => setFileType("excel")}
-                    className="form-checkbox text-green-500"
+                    className="form-radio h-4 w-4 text-yellow-500 border-gray-300 focus:ring-yellow-400"
                   />
                 </label>
               </div>
@@ -856,19 +879,19 @@ export default function AllTransactionsPage() {
           </div>
         )}
         {/* Transactions Table */}
-        <div className="mt-6 bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-          <table className="w-full table-auto text-left">
+        <div className="mt-6 bg-white border border-gray-200 rounded-lg shadow-sm overflow-x-auto"> {/* Added overflow-x-auto for responsiveness */}
+          <table className="w-full table-auto text-left min-w-[1024px]"> {/* Added min-w for larger tables */}
             <thead className="bg-white">
               <tr className="text-gray-400 font-light text-sm">
-                <th className="py-3 px-4">Customer</th>
-                <th className="py-3 px-4">Transaction ID</th>
-                <th className="py-3 px-4">Sender Amount</th>
-                <th className="py-3 px-4">Sender Currency</th>
-                <th className="py-3 px-4">Recipient Amount</th>
-                <th className="py-3 px-4">Recipient Currency</th>
-                <th className="py-3 px-4">Channel</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4">Date & Time</th>
+                <th className="py-3 px-4 whitespace-nowrap">Customer</th>
+                <th className="py-3 px-4 whitespace-nowrap">Transaction ID</th>
+                <th className="py-3 px-4 whitespace-nowrap">Sender Amount</th>
+                <th className="py-3 px-4 whitespace-nowrap">Sender Currency</th>
+                <th className="py-3 px-4 whitespace-nowrap">Recipient Amount</th>
+                <th className="py-3 px-4 whitespace-nowrap">Recipient Currency</th>
+                <th className="py-3 px-4 whitespace-nowrap">Channel</th>
+                <th className="py-3 px-4 whitespace-nowrap">Status</th>
+                <th className="py-3 px-4 whitespace-nowrap">Date & Time</th>
                 <th className="py-3 px-4"></th>
               </tr>
             </thead>
@@ -889,32 +912,44 @@ export default function AllTransactionsPage() {
                     className="text-gray-700 cursor-pointer text-sm hover:bg-gray-50"
                     onClick={() => setSelectedTransaction(transaction)}
                   >
-                    <td className="py-4 px-6">{transaction.senderName}</td>
-                    <td className="py-3 px-4">{transaction.transactionId}</td>
-                    <td className="py-3 px-4">
+                    <td className="py-4 px-6 whitespace-nowrap">{transaction.senderName}</td>
+                    <td className="py-3 px-4 whitespace-nowrap">{transaction.transactionId}</td>
+                    <td className="py-3 px-4 whitespace-nowrap">
                       {transaction.senderAmount.toFixed(2)}
                     </td>
-                    <td className="py-3 px-4">{transaction.currencyIso3a}</td>
-                    <td className="py-3 px-4">
+                    <td className="py-3 px-4 whitespace-nowrap">{transaction.currencyIso3a}</td>
+                    <td className="py-3 px-4 whitespace-nowrap">
                       {transaction.recipientAmount.toFixed(2)}
                     </td>
-                    <td className="py-3 px-4">
+                    <td className="py-3 px-4 whitespace-nowrap">
                       {transaction.receiverCurrencyIso3a}
                     </td>
-                    <td className="py-3 px-4">{transaction.transactionType}</td>
-                    <td className="py-3 px-4">
+                    <td className="py-3 px-4 whitespace-nowrap">{transaction.transactionType}</td>
+                    <td className="py-3 px-4 whitespace-nowrap">
                       <span
-                        className={`px-3 py-1 text-sm font-medium rounded-full ${
+                        className={`px-3 py-1 text-xs font-medium rounded-full ${ // changed text-sm to text-xs
                           transaction.status === "Success"
                             ? "text-green-600 bg-green-100"
-                            : "text-red-600 bg-red-100"
+                            : transaction.status === "Pending"
+                            ? "text-yellow-600 bg-yellow-100"
+                            : transaction.status === "Failed"
+                            ? "text-red-600 bg-red-100"
+                            : transaction.status === "Refunded"
+                            ? "text-purple-600 bg-purple-100"
+                            : transaction.status === "Under Review"
+                            ? "text-blue-600 bg-blue-100"
+                            : transaction.status === "Rejected"
+                            ? "text-orange-600 bg-orange-100"
+                            : transaction.status === "Escalated"
+                            ? "text-amber-600 bg-amber-100"
+                            : "text-gray-600 bg-gray-100"
                         }`}
                       >
                         {transaction.status}
                       </span>
                     </td>
-                    <td className="py-3 px-4">{transaction.date}</td>
-                    <td className="py-3 px-4 text-right">
+                    <td className="py-3 px-4 whitespace-nowrap">{transaction.date}</td>
+                    <td className="py-3 px-4 text-right whitespace-nowrap">
                       <ArrowRight className="h-5 w-5 text-gray-500" />
                     </td>
                   </tr>
@@ -933,7 +968,7 @@ export default function AllTransactionsPage() {
           </table>
         </div>
         {/* Pagination */}
-        {filteredTransactions.length > 0 && (
+        {filteredTransactions.length > 0 && totalFilteredPages > 1 && ( // Only show pagination if more than one page
           <div className="flex justify-center mt-6 space-x-2">
             <button
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
@@ -946,7 +981,7 @@ export default function AllTransactionsPage() {
               Page {currentPage} of {totalFilteredPages}
             </span>
             <button
-              onClick={() => setCurrentPage((prev) => prev + 1)}
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalFilteredPages))} // Ensure not to go beyond totalFilteredPages
               disabled={currentPage >= totalFilteredPages}
               className="px-4 py-2 border rounded-md bg-blue-500 text-white hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
             >
@@ -959,7 +994,7 @@ export default function AllTransactionsPage() {
         {selectedTransaction && (
           <div className="fixed inset-0 z-50 flex justify-end">
             <div
-              className="bg-black bg-opacity-50 w-full h-full"
+              className="bg-black bg-opacity-50 w-full h-full fixed inset-0" // Ensure it covers the whole screen
               onClick={closeModal}
             ></div>
             <div
@@ -971,7 +1006,7 @@ export default function AllTransactionsPage() {
                 className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-2xl"
                 onClick={closeModal}
               >
-                &times;
+                ×
               </button>
 
               <div className="space-y-8">
@@ -989,15 +1024,15 @@ export default function AllTransactionsPage() {
                 <div className="mt-6">
                   <div className="grid grid-cols-2 gap-y-4 text-gray-700">
                     <p className="text-gray-400">Transaction ID:</p>
-                    <p>{selectedTransaction.transactionId}</p>
+                    <p className="break-all">{selectedTransaction.transactionId}</p>
                     <p className="text-gray-400">User ID:</p>
-                    <p>{selectedTransaction.userId || "N/A"}</p>
+                    <p className="break-all">{selectedTransaction.userId || "N/A"}</p>
                     <p className="text-gray-400">Transaction Key:</p>
-                    <p>{selectedTransaction.transactionKey}</p>
+                    <p className="break-all">{selectedTransaction.transactionKey}</p>
                     <p className="text-gray-400">Channel:</p>
-                    <p>{selectedTransaction.transactionType}</p>
+                    <p className="break-all">{selectedTransaction.transactionType}</p>
                     <p className="text-gray-400">Bank Name:</p>
-                    <p>{selectedTransaction.bankName || "N/A"}</p>
+                    <p className="break-all">{selectedTransaction.bankName || "N/A"}</p>
                     <p className="text-gray-400">Purpose:</p>
                     <p>Transfer</p>
                     <p className="text-gray-400">Sender Currency:</p>
@@ -1005,16 +1040,16 @@ export default function AllTransactionsPage() {
                     <p className="text-gray-400">Recipient Currency:</p>
                     <p>{selectedTransaction.receiverCurrencyIso3a}</p>
                     <p className="text-gray-400">Trust Payments:</p>
-                    <p>{selectedTransaction.tpReference}</p>
+                    <p className="break-all">{selectedTransaction.tpReference}</p>
                     <p className="text-gray-400">Settlement Reference:</p>
-                    <p>{selectedTransaction.settlementReference}</p>
+                    <p className="break-all">{selectedTransaction.settlementReference}</p>
                     <p className="text-gray-400">MPESA Reference:</p>
-                    <p>{selectedTransaction.mpesaReference || "N/A"}</p>
+                    <p className="break-all">{selectedTransaction.mpesaReference || "N/A"}</p>
                     <p className="text-gray-400">Account Number:</p>
-                    <p>{selectedTransaction.accountNumber}</p>
+                    <p className="break-all">{selectedTransaction.accountNumber}</p>
 
                     <p className="text-gray-400">Error Message:</p>
-                    <p>{selectedTransaction.errorMessage || "N/A"}</p>
+                    <p className="break-all col-span-2">{selectedTransaction.errorMessage || "N/A"}</p> 
                   </div>
                 </div>
 
@@ -1038,13 +1073,13 @@ export default function AllTransactionsPage() {
                   </h4>
                   <div className="flex flex-col items-center space-y-4">
                     <div>
-                      <p className="text-gray-700 font-semibold">
+                      <p className="text-gray-700 font-semibold break-all">
                         {selectedTransaction.senderName}
                       </p>
-                      <p className="text-gray-500 text-lg">
+                      <p className="text-gray-500 text-lg break-all">
                         {selectedTransaction.senderPhone}
                       </p>
-                      <p className="text-gray-500 text-sm mt-1">
+                      <p className="text-gray-500 text-sm mt-1 break-all">
                         {selectedTransaction.senderEmail}
                       </p>
                     </div>
@@ -1057,11 +1092,11 @@ export default function AllTransactionsPage() {
                   </h4>
                   <div className="flex flex-col items-center space-y-4">
                     <div>
-                      <p className="text-gray-700 font-semibold">
+                      <p className="text-gray-700 font-semibold break-all">
                         {selectedTransaction.receiverName}
                       </p>
                       {selectedTransaction.receiverPhone && (
-                        <p className="text-gray-500 text-lg">
+                        <p className="text-gray-500 text-lg break-all">
                           {selectedTransaction.receiverPhone}
                         </p>
                       )}
@@ -1075,18 +1110,16 @@ export default function AllTransactionsPage() {
                       className="flex items-center justify-center gap-2 text-yellow-500 font-semibold hover:text-yellow-600 mx-auto"
                       onClick={handleDownloadReceipt}
                     >
-                      <svg
+                      <svg // Using a download icon
                         xmlns="http://www.w3.org/2000/svg"
-                        className="h-6 w-6"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
+                        className="h-5 w-5"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
                       >
                         <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 4v16m8-8H4"
+                          fillRule="evenodd"
+                          d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+                          clipRule="evenodd"
                         />
                       </svg>
                       Download Receipt
@@ -1102,18 +1135,21 @@ export default function AllTransactionsPage() {
                       opacity: 0,
                       position: "absolute",
                       pointerEvents: "none",
-                      width: "700px",
+                      width: "700px", // Explicit width for PDF rendering consistency
                       padding: "40px",
                       boxSizing: "border-box",
+                      left: "-9999px", // Move off-screen
+                      top: "-9999px", // Move off-screen
                     }}
                     className="bg-white mx-auto shadow-lg rounded-lg text-gray-700"
                   >
                     {/* Header */}
                     <div className="text-center mb-1 mt-1">
                       <img
-                        src="/logoimage.png"
+                        src="/logoimage.png" // Ensure this path is correct or use an absolute URL if hosted
                         className="w-10 h-10 mx-auto"
                         alt="Company Logo"
+                        crossOrigin="anonymous" // Added for CORS if image is on different domain
                       />
                       <h2 className="text-2xl font-bold text-black mt-3">
                         {selectedTransaction.senderAmount.toFixed(2)}{" "}
@@ -1150,7 +1186,7 @@ export default function AllTransactionsPage() {
                           </div>
                           <div>
                             <p className="text-gray-500 text-sm">Channel</p>
-                            <p className="text-sm font-semibold">
+                            <p className="text-sm font-semibold break-all">
                               {selectedTransaction.transactionType}
                             </p>
                           </div>
@@ -1166,7 +1202,7 @@ export default function AllTransactionsPage() {
                             <p className="text-gray-500 text-sm">
                               TP Reference
                             </p>
-                            <p className="text-sm font-semibold">
+                            <p className="text-sm font-semibold break-all">
                               {selectedTransaction.tpReference}
                             </p>
                           </div>
@@ -1188,7 +1224,7 @@ export default function AllTransactionsPage() {
                             <p className="text-gray-500 text-sm">
                               Settlement Ref
                             </p>
-                            <p className="text-sm font-semibold">
+                            <p className="text-sm font-semibold break-all">
                               {selectedTransaction.settlementReference}
                             </p>
                           </div>
@@ -1196,7 +1232,7 @@ export default function AllTransactionsPage() {
                             <p className="text-gray-500 text-sm">
                               MPESA Reference
                             </p>
-                            <p className="text-sm font-semibold">
+                            <p className="text-sm font-semibold break-all">
                               {selectedTransaction.mpesaReference || "N/A"}
                             </p>
                           </div>
@@ -1236,7 +1272,7 @@ export default function AllTransactionsPage() {
                         </div>
                         <div>
                           <p className="text-gray-500 text-sm">Bank Name</p>
-                          <p className="text-sm font-semibold">
+                          <p className="text-sm font-semibold break-all">
                             {selectedTransaction.bankName || "N/A"}
                           </p>
                         </div>
@@ -1252,19 +1288,19 @@ export default function AllTransactionsPage() {
                         <div className="space-y-3">
                           <div>
                             <p className="text-gray-500 text-sm">Name</p>
-                            <p className="text-black text-sm font-semibold">
+                            <p className="text-black text-sm font-semibold break-all">
                               {selectedTransaction.senderName}
                             </p>
                           </div>
                           <div>
                             <p className="text-gray-500 text-sm">Phone</p>
-                            <p className="text-sm font-semibold">
+                            <p className="text-sm font-semibold break-all">
                               {selectedTransaction.senderPhone}
                             </p>
                           </div>
                           <div>
                             <p className="text-gray-500 text-sm">Email</p>
-                            <p className="text-sm font-semibold">
+                            <p className="text-sm font-semibold break-all">
                               {selectedTransaction.senderEmail}
                             </p>
                           </div>
@@ -1278,14 +1314,14 @@ export default function AllTransactionsPage() {
                         <div className="space-y-3">
                           <div>
                             <p className="text-gray-500 text-sm">Name</p>
-                            <p className="text-black text-sm font-semibold">
+                            <p className="text-black text-sm font-semibold break-all">
                               {selectedTransaction.receiverName}
                             </p>
                           </div>
                           {selectedTransaction.receiverPhone && (
                             <div>
                               <p className="text-gray-500 text-sm">Phone</p>
-                              <p className="text-sm font-semibold">
+                              <p className="text-sm font-semibold break-all">
                                 {selectedTransaction.receiverPhone}
                               </p>
                             </div>
@@ -1294,7 +1330,7 @@ export default function AllTransactionsPage() {
                             <p className="text-gray-500 text-sm">
                               Account Number
                             </p>
-                            <p className="text-sm font-semibold">
+                            <p className="text-sm font-semibold break-all">
                               {selectedTransaction.accountNumber}
                             </p>
                           </div>

@@ -1,4 +1,4 @@
-import ControlHub from "@/app/access-manager/components/SignUp";
+import ControlHub from "./access-manager/components/SignUp";
 
 export default function Home() {
   return (

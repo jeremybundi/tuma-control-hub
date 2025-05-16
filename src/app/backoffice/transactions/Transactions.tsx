@@ -133,8 +133,10 @@ const TransactionsPage = () => {
             mpesaReference: tx.mpesaReference || "N/A",
             tpReference: tx.tpReference || "N/A",
             errorMessage: tx.errorMessage || "N/A",
-            userID: tx.userID || "N/A",
-            bankName: tx.bankName || "N/A",
+            userID: tx.userID !== undefined && tx.userID !== null && !isNaN(Number(tx.userID))
+            ? Number(tx.userID)
+            : null,
+                      bankName: tx.bankName || "N/A",
           }));
     
           allData = [...allData, ...formattedTransactions];

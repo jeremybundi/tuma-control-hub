@@ -261,7 +261,7 @@ const VerifyOTPContent = () => {
           </form>
 
           <p className="mt-6 text-center text-gray-500 text-lg">
-          Don't receive the code? 
+          Don&apos;t receive the code? 
             <button 
               onClick={handleResendOTP} 
               disabled={resendDisabled || isLoading} 

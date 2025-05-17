@@ -164,7 +164,7 @@ const Table: FC = () => {
     };
 
     fetchTransactions(); 
-  }, [get]);
+  }, );
 
   useEffect(() => {
     if (selectedTransaction) {

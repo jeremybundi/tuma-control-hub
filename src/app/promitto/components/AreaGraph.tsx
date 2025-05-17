@@ -82,7 +82,7 @@ function AreaGraph({
     };
 
     fetchData();
-  }, [dateRange, get]);
+  }, [dateRange]);
 
   return (
     <Card className="bg-white">

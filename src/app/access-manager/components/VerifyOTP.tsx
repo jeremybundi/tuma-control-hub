@@ -63,7 +63,7 @@ const VerifyOTPContent = () => {
       console.log("Sending OTP verification request...");
       const response = await axios.post(
         // Consider moving this URL to an environment variable
-        "https://auth.tuma-app.com/api/auth/email",
+        "http://tuma-dev-backend-auth-alb-2099885708.us-east-1.elb.amazonaws.com/api/auth/email",
         {
           email: email,
           verificationCode: verificationCode
@@ -140,7 +140,7 @@ const VerifyOTPContent = () => {
     try {
       // Consider moving this URL to an environment variable
       await axios.post(
-        `https://auth.tuma-app.com/api/auth/send-otp/${encodeURIComponent(email)}`
+        `http://tuma-dev-backend-auth-alb-2099885708.us-east-1.elb.amazonaws.com/api/auth/send-otp/${encodeURIComponent(email)}`
       );
       if (typeof alert !== "undefined") alert("A new OTP has been sent to your email.");
     } catch (err) {

@@ -21,7 +21,7 @@ const Login = () => {
     try {
       // Make API call to send OTP
       const response = await axios.post(
-        `https://auth.tuma-app.com/api/auth/send-otp/${encodeURIComponent(email)}`
+        `http://tuma-dev-backend-auth-alb-2099885708.us-east-1.elb.amazonaws.com/api/auth/send-otp/${encodeURIComponent(email)}`
       );
   
       if (response.status === 200) {

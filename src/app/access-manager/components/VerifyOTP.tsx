@@ -75,19 +75,19 @@ const VerifyOTPContent = () => {
         }
       );
   
-      console.log("API Response:", response.data);
+    //  console.log("API Response:", response.data);
   
       if (response.status === 200 && response.data.accessToken) {
         const decodedToken = jwtDecode<DecodedToken>(response.data.accessToken);
         const tokenExpiry = decodedToken.exp * 1000;
   
-        console.log("Decoded Token Data:", {
+      /*  console.log("Decoded Token Data:", {
           rawToken: response.data.accessToken,
           decoded: decodedToken,
           expiryDate: new Date(tokenExpiry),
           currentTime: new Date(),
           expiresIn: Math.round((tokenExpiry - Date.now()) / 1000 / 60) + " minutes"
-        });
+        }); */
   
         dispatch(setCredentials({
           accessToken: response.data.accessToken,
@@ -95,11 +95,11 @@ const VerifyOTPContent = () => {
           tokenExpiry: tokenExpiry
         }));
   
-        console.log("Data dispatched to Redux store:", {
+     /*   console.log("Data dispatched to Redux store:", {
           accessToken: response.data.accessToken,
           refreshToken: response.data.refreshToken,
           tokenExpiry: tokenExpiry
-        });
+        }); */
         
         setError(""); // Clear error on success
         setIsVerified(true); // Set verification status

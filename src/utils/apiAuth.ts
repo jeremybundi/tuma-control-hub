@@ -11,7 +11,7 @@ import axios, {
   import type { RootState } from '../store/store';
   
   // API base URL
-  const API_BASE_URL = 'https://tuma-dev-backend-auth-alb-2099885708.us-east-1.elb.amazonaws.com/api';
+  const API_BASE_URL = 'https://auth.tuma-app.com/api';
   
   // Create Axios instance
   const api: AxiosInstance = axios.create({

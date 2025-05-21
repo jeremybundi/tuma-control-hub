@@ -5,18 +5,23 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { Bell, Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion"; // added
-import { useRouter } from 'next/navigation';
-
+import { useRouter } from "next/navigation";
 
 const navItems = [
-  { label: "Overview", href: "/dashboard" },
+  { label: "Overview", href: "/backoffice/dashboard" },
   {
     label: "Financial Metrics & Revenue Performance",
-    href: "/financial-metrics",
+    href: "/backoffice/financial-metrics",
   },
-  { label: "Customer Analytics", href: "/customer-analytics" },
-  { label: "Compliance & Risk Management", href: "/compliance-risk" },
-  { label: "Operational Efficiency", href: "/operational-efficiency" },
+  { label: "Customer Analytics", href: "/backoffice/customer-analytics" },
+  {
+    label: "Compliance & Risk Management",
+    href: "/backoffice/compliance-risk",
+  },
+  {
+    label: "Operational Efficiency",
+    href: "/backoffice/operational-efficiency",
+  },
 ];
 
 function TopNav() {
@@ -24,10 +29,9 @@ function TopNav() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const router = useRouter();
 
-
   const toggleMenu = () => setIsMenuOpen((prev) => !prev);
   const handleLogoClick = () => {
-    router.push('/dashboard'); 
+    router.push("/dashboard");
   };
 
   return (
@@ -42,12 +46,12 @@ function TopNav() {
               <Menu size={24} className="text-white" />
             )}
           </button>
-          <div      
-             onClick={handleLogoClick}
-            className="cursor-pointer"
-          >
-          <img src="/backoffice/tumalink.png" alt="Tuma Logo" className="h-7" />
-
+          <div onClick={handleLogoClick} className="cursor-pointer">
+            <img
+              src="/backoffice/tumalink.png"
+              alt="Tuma Logo"
+              className="h-7"
+            />
           </div>
         </div>
 

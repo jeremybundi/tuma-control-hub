@@ -3,11 +3,7 @@ import React from "react";
 import { X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-import {
-  getInitials,
-  getPastelColor,
-  statusStyles,
-} from "./constants";
+import { getInitials, getPastelColor, statusStyles } from "./constants";
 
 interface User {
   accountId: number;
@@ -43,15 +39,23 @@ export default function UserDetailsModal({
     if (code === "Kenya") {
       return (
         <>
-          <img src="/kenya-flag.png" alt="Kenya" className="w-5 h-5 rounded" />{" "}
+          <img
+            src="/backoffice/kenya-flag.png"
+            alt="Kenya"
+            className="w-5 h-5 rounded"
+          />{" "}
           Kenya
         </>
       );
     } else if (code === "United Kingdom" || code === "GBR") {
       return (
         <>
-          <img src="/uk-flag.png" alt="UK" className="w-5 h-5 rounded" /> United
-          Kingdom
+          <img
+            src="/backoffice/uk-flag.png"
+            alt="UK"
+            className="w-5 h-5 rounded"
+          />{" "}
+          United Kingdom
         </>
       );
     } else {

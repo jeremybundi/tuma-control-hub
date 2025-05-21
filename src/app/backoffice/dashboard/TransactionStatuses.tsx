@@ -12,11 +12,6 @@ import {
 import { TrendingDown, TrendingUp, ChevronDown } from "lucide-react";
 import useApi from "../../../hooks/useApi"; // Import your middleware hook
 
-interface Props {
-  startDate: Date;
-  endDate: Date;
-}
-
 type ApiDataItem = {
   day: string;
   success: number;
@@ -55,7 +50,7 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function TransactionStatuses({ startDate, endDate }: Props) {
+export function TransactionStatuses() {
   const api = useApi(); // Initialize your API middleware
   const [selectedChannel, setSelectedChannel] = useState("MPESA");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);

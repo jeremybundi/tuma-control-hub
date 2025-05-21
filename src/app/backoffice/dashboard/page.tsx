@@ -57,7 +57,7 @@ export default function Dashboard() {
 
         <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
           <div className="md:col-span-3 bg-white p-4 rounded-2xl">
-            <TransactionStatuses startDate={startDate} endDate={endDate} />
+            <TransactionStatuses />
           </div>
           <div className="md:col-span-2 bg-white p-4 rounded-2xl">
             <CustomerSegmentation />
